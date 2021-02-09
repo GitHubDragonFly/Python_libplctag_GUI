@@ -5,9 +5,10 @@ Intended to be used solely as a testing tool (not fit for any production environ
 
 Make sure to check the pictures in the "screenshots" folder on how to setup the folder structure (the required and the optional expanded for Android).
 
-Get libplctag libraries here:
+Get libplctag libraries and wrapper files here:
 
-- libplctag [releases](https://github.com/libplctag/libplctag/releases), v2.2.0 recommended
+- libplctag library [releases](https://github.com/libplctag/libplctag/releases), v2.2.0 recommended
+- libplctag [wrapper](https://github.com/libplctag/libplctag/tree/release/src/wrappers/python/plctag) or modified version from [here](https://github.com/libplctag/libplctag/issues/228)
 
 # Functionality
 - Only a single value will be displayed per tag entered, either of string/char/integer/float...etc.
