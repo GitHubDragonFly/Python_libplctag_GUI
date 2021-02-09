@@ -1,5 +1,6 @@
 # PythonTest
 Simple GUI app for [libplctag](https://github.com/libplctag/libplctag) python wrapper. 
+Still work in progress but currently functional for reading atomic types and strings as well as getting tags from ControlLogix PLCs.
 
 Intended to be used solely as a testing tool (not fit for any production environment).
 
@@ -15,7 +16,7 @@ Get libplctag libraries and wrapper files here:
 - The default values can be changed for the app's startup.
 - The app provides automated READ and doesn't include WRITE functionality.
 - The "Get Tags" button will fetch ControlLogix tags and double-clicking any of the fetched tags will copy it to the clipboard.
-- The IP Address, Path and Tag text boxes offer right-click "Paste" functionality
+- The IP Address, Path and Tag text boxes offer right-click "Paste" functionality.
 - The Custom String Length has to be specified when the "custom string" data type is selected.
 - Modbus functionality of the libplctag library is not included in this app.
 
@@ -28,7 +29,7 @@ All it takes is to:
 
 - Install python on your device (this was tested with v3.9 but might work with older versions).
 - Create the required folder structure inside a folder of your choice, download plctag_gui.py file and add it to that folder.
-- One way to run it would be from the command prompt in Windows, by navigating to your folder and running the file with "python plctag_gui.py"
+- One way to run it would be from the command prompt in Windows, by navigating to your folder and running the file with "python plctag_gui.py" command.
 
 # Licensing
 This is MIT licensed.
