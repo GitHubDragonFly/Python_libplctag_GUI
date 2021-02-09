@@ -9,7 +9,7 @@ Make sure to check the pictures in the "screenshots" folder on how to setup the 
 Get libplctag libraries and wrapper files here:
 
 - libplctag library [releases](https://github.com/libplctag/libplctag/releases), v2.2.0 recommended
-- libplctag [wrapper](https://github.com/libplctag/libplctag/tree/release/src/wrappers/python/plctag) or its modified version from [here](https://github.com/libplctag/libplctag/issues/228)
+- libplctag's [__init__.py](https://github.com/libplctag/libplctag/tree/release/src/wrappers/python/plctag) file and modified version of [libplctag.py](https://github.com/libplctag/libplctag/issues/228) file
 
 # Functionality
 - Only a single value will be displayed per tag entered, either of string/char/integer/float...etc.
