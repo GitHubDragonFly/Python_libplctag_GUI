@@ -9,7 +9,7 @@ Make sure to check the pictures in the "screenshots" folder on how to setup the 
 Get libplctag libraries and wrapper files here:
 
 - libplctag library [releases](https://github.com/libplctag/libplctag/releases), v2.2.0 recommended
-- libplctag [wrapper](https://github.com/libplctag/libplctag/tree/release/src/wrappers/python/plctag) or modified version from [here](https://github.com/libplctag/libplctag/issues/228)
+- libplctag [wrapper](https://github.com/libplctag/libplctag/tree/release/src/wrappers/python/plctag) or its modified version from [here](https://github.com/libplctag/libplctag/issues/228)
 
 # Functionality
 - Only a single value will be displayed per tag entered, either of string/char/integer/float...etc.
@@ -28,7 +28,7 @@ See the libplctag website for all PLCs supported by the library.
 All it takes is to:
 
 - Install python on your device (this was tested with v3.9 but might work with older versions).
-- Create the required folder structure inside a folder of your choice, download plctag_gui.py file and add it to that folder.
+- Create the required folder structure inside a folder of your choice, copy the corresponding libplctag libraries to their folders, get wrapper files, download plctag_gui.py file and add it to your folder.
 - One way to run it would be from the command prompt in Windows, by navigating to your folder and running the file with "python plctag_gui.py" command.
 
 # Licensing
