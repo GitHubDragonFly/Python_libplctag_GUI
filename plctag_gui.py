@@ -11,6 +11,7 @@ import threading
 import platform
 import time
 import math
+import array
 
 from libplctag import *
 
@@ -83,6 +84,7 @@ def main():
     global lbPID
     global lbBit
     global lbStringLength
+    global lbBoolDisplay
     global tbPLC
     global tbDataType
     global tbPID
@@ -106,12 +108,13 @@ def main():
     frame1 = Frame(root, background='#837DFF')
     frame1.pack(fill=X)
 
-    # add listboxes for PLCs, DataTypes, PID, Bits, Custom String Length and Tags
+    # add listboxes for PLCs, DataTypes, PID, Bits, Custom String Length, Bool Display and Tags
     lbPLC = Listbox(frame1, height=11, width=12, bg='lightgreen')
     lbDataType = Listbox(frame1, height=11, width=13, bg='lightblue')
     lbPID = Listbox(frame1, height=11, width=6, bg='lightgreen')
     lbBit = Listbox(frame1, height=11, width=6, bg='lightblue')
-    lbStringLength = Listbox(frame1, height=11, width=8, bg='lightblue')
+    lbStringLength = Listbox(frame1, height=11, width=8, bg='lightgreen')
+    lbBoolDisplay = Listbox(frame1, height=11, width=10, bg='lightblue')
     lbTags = Listbox(frame1, height=11, width=40, bg='lightgreen')
 
     lbPLC.insert(1, '~ PLC')
@@ -196,6 +199,18 @@ def main():
     scrollbarStringLength.pack(anchor=N, side=LEFT, pady=3, ipady=65)
     lbStringLength.config(yscrollcommand = scrollbarStringLength.set)
 
+    lbBoolDisplay.insert(1, '~ Boolean')
+
+    i = 2
+    for boolDisplay in bool_display:
+        lbBoolDisplay.insert(i, boolDisplay)
+        i = i + 1
+
+    lbBoolDisplay.pack(anchor=N, side=LEFT, padx=3, pady=3)
+
+    # select boolean display format on the mouse double-click
+    lbBoolDisplay.bind('<Double-Button-1>', lambda event: bool_display_select())
+
     # add scrollbar for the Tags list box
     scrollbarTags = Scrollbar(frame1, orient='vertical', command=lbTags.yview)
     scrollbarTags.pack(anchor=N, side=RIGHT, padx=3, pady=3, ipady=65)
@@ -213,7 +228,7 @@ def main():
     btnGetTags = Button(frame2, text = 'Get Tags', fg ='brown', height=1, width=9, relief=RAISED, command=start_get_tags)
     btnGetTags.pack(side=RIGHT, padx=3, pady=1)
 
-    # add text boxes to serve as labels showing currently selected PLC, DataType, PID, Bit and StringLength
+    # add text boxes to serve as labels showing currently selected PLC, DataType, PID, Bit, StringLength and BoolDisplay
     selectedPLC = StringVar()
     tbPLC = Entry(frame2, justify=CENTER, textvariable=selectedPLC, width=12, fg='blue', state='readonly')
     selectedPLC.set('controllogix')
@@ -234,15 +249,19 @@ def main():
     tbStringLength = Entry(frame2, justify=CENTER, textvariable=selectedStringLength, width=8, fg='blue', state='readonly')
     selectedStringLength.set('1')
     tbStringLength.pack(side=LEFT, padx=11, pady=1)
+    selectedBoolDisplay = StringVar()
+    tbBoolDisplay = Entry(frame2, justify=CENTER, textvariable=selectedBoolDisplay, width=10, fg='blue', state='readonly')
+    selectedBoolDisplay.set('True : False')
+    tbBoolDisplay.pack(side=LEFT, padx=13, pady=1)
 
     frame3 = Frame(root, background='#837DFF')
     frame3.pack(fill=X)
 
     # create a label and a text box for the Tag entry
-    lblTag = Label(frame3, text='Tag To Poll', fg='black', bg='#837DFF', font='Helvetica 9')
-    lblTag.pack(anchor=CENTER, side=TOP, pady=1)
+    lblTag = Label(frame3, text='Tag to Read', fg='black', bg='#837DFF', font='Helvetica 9 italic')
+    lblTag.pack(anchor=CENTER, side=TOP, pady=5)
     selectedTag = StringVar()
-    tbTag = Entry(frame3, justify=CENTER, textvariable=selectedTag, font='Helvetica 10', width=90, relief=RAISED)
+    tbTag = Entry(frame3, justify=CENTER, textvariable=selectedTag, font='Helvetica 10 bold', width=90, relief=RAISED)
     selectedTag.set(myTag)
 
     # add the 'Paste' menu on the mouse right-click
@@ -250,7 +269,7 @@ def main():
     popup_menu_tbTag.add_command(label='Paste', command=tag_paste)
     tbTag.bind('<Button-3>', lambda event: tag_menu(event, tbTag))
 
-    tbTag.pack(anchor=CENTER, side=TOP, pady=2)
+    tbTag.pack(anchor=CENTER, side=TOP, pady=1)
 
     # create a label to display the received tag value
     tagValue = Label(frame3, text='~', fg='yellow', bg='navy', font='Helvetica 24', width=33, relief=SUNKEN)
@@ -264,7 +283,7 @@ def main():
 
     # create a label and an entry box for the IPAddress
     lblIPAddress = Label(frame5, text='IP Address', fg='black', bg='#837DFF', font='Helvetica 9')
-    lblIPAddress.pack(side=LEFT, padx=45, pady=3)
+    lblIPAddress.pack(side=LEFT, padx=45)
     selectedIPAddress = StringVar()
     tbIPAddress = Entry(frame4, justify=CENTER, textvariable=selectedIPAddress, font='Helvetica 9', relief=RAISED)
     selectedIPAddress.set(ipAddress)
@@ -278,7 +297,7 @@ def main():
 
     # create a label and an entry box for the Path
     lblPath = Label(frame5, text='Path', fg='black', bg='#837DFF', font='Helvetica 9')
-    lblPath.pack(side=RIGHT, padx=60, pady=3)
+    lblPath.pack(side=RIGHT, padx=60)
     selectedPath = StringVar()
     tbPath = Entry(frame4, justify=CENTER, textvariable=selectedPath, font='Helvetica 9', relief=RAISED)
     selectedPath.set(path)
@@ -581,25 +600,31 @@ def startUpdateValue():
     Call ourself to update the screen
     '''
 
-    comm_check()
+    if not tagID > 0:
+        comm_check()
 
     if not updateRunning:
         updateRunning = True
     else:
-        if myTag != '':
-            btnStart['state'] = 'disabled'
-            btnStop['state'] = 'normal'
-            btnGetTags['state'] = 'disabled'
-            tbIPAddress['state'] = 'disabled'
-            tbPath['state'] = 'disabled'
-            tbTag['state'] = 'disabled'
+        if tagID > 0:
+            if btnStart['state'] != 'disabled':
+                btnStart['state'] = 'disabled'
+                btnStop['state'] = 'normal'
+                btnGetTags['state'] = 'disabled'
+                lbPLC['state'] = 'disabled'
+                lbDataType['state'] = 'disabled'
+                tbIPAddress['state'] = 'disabled'
+                tbPath['state'] = 'disabled'
+                tbTag['state'] = 'disabled'
 
             try:
                 plcTagRead(tagID, timeout)
                 
                 dt = selectedDataType.get()
 
-                if dt == 'int8':
+                if dt == 'bool':
+                    tagValue['text'] = set_bool_display(plcTagGetBit(tagID, 0))
+                elif dt == 'int8':
                     tagValue['text'] = plcTagGetInt8(tagID, 0)
                 elif dt == 'uint8':
                     tagValue['text'] = plcTagGetUInt8(tagID, 0)
@@ -674,9 +699,31 @@ def stopUpdateValue():
         btnStart['state'] = 'normal'
         btnStop['state'] = 'disabled'
         btnGetTags['state'] = 'normal'
+        lbPLC['state'] = 'normal'
+        lbDataType['state'] = 'normal'
         tbIPAddress['state'] = 'normal'
         tbPath['state'] = 'normal'
         tbTag['state'] = 'normal'
+
+def set_bool_display(boolValue):
+    boolFormat = selectedBoolDisplay.get()
+
+    if boolValue == 1:
+        if boolFormat == 'True : False':
+            return 'True'
+        elif boolFormat == 'One : Zero':
+            return '1'
+        else:
+            return 'On'
+    elif boolValue == 0:
+        if boolFormat == 'True : False':
+            return 'False'
+        elif boolFormat == 'One : Zero':
+            return '0'
+        else:
+            return 'Off'
+    else:
+        return 'Invalid Value'
 
 def tag_copy():
     root.clipboard_clear()
@@ -684,7 +731,12 @@ def tag_copy():
     root.clipboard_append(listboxSelectedTag)
 
 def tag_menu(event, tbTag):
-    if root.clipboard_get() != '' and tbTag['state'] == 'normal':
+    try:
+        old_clip = root.clipboard_get()
+    except:
+        old_clip = None
+
+    if (not old_clip is None) and (type(old_clip) is str) and tbTag['state'] == 'normal':
         tbTag.select_range(0, 'end')
         popup_menu_tbTag.post(event.x_root, event.y_root)
 
@@ -805,8 +857,17 @@ def string_length_select():
     if lbStringLength.get(ANCHOR)[0] != '~':
         selectedStringLength.set(lbStringLength.get(ANCHOR))
 
+def bool_display_select():
+    if lbBoolDisplay.get(ANCHOR)[0] != '~':
+        selectedBoolDisplay.set(lbBoolDisplay.get(ANCHOR))
+
 def ip_menu(event, tbIPAddress):
-    if root.clipboard_get() != '' and tbIPAddress['state'] == 'normal':
+    try:
+        old_clip = root.clipboard_get()
+    except:
+        old_clip = None
+
+    if (not old_clip is None) and (type(old_clip) is str) and tbIPAddress['state'] == 'normal':
         tbIPAddress.select_range(0, 'end')
         popup_menu_tbIPAddress.post(event.x_root, event.y_root)
 
@@ -817,7 +878,12 @@ def ip_paste():
     tbIPAddress.icursor('end')
 
 def path_menu(event, tbPath):
-    if root.clipboard_get() != '' and tbPath['state'] == 'normal':
+    try:
+        old_clip = root.clipboard_get()
+    except:
+        old_clip = None
+
+    if (not old_clip is None) and (type(old_clip) is str) and tbPath['state'] == 'normal':
         tbPath.select_range(0, 'end')
         popup_menu_tbPath.post(event.x_root, event.y_root)
 
