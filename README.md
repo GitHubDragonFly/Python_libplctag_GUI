@@ -12,6 +12,8 @@ Get libplctag libraries and wrapper files here:
 - libplctag library [releases](https://github.com/libplctag/libplctag/releases), v2.2.0 recommended
 - libplctag's [__init__.py](https://github.com/libplctag/libplctag/tree/release/src/wrappers/python/plctag) file and modified version of [libplctag.py](https://github.com/libplctag/libplctag/issues/228) file
 
+Andoid libraries you can get from my [PhoneTest](https://github.com/GitHubDragonFly/PhoneTest) project or build them yourself by cloning the [libplctag4android](https://github.com/libplctag/libplctag4android) project.
+
 # Functionality
 - Only a single value will be displayed per tag entered, either of string/char/integer/float...etc.
 - The default values can be changed for the app's startup.
