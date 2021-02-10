@@ -1,7 +1,7 @@
 # PythonTest
 Simple GUI app for [libplctag](https://github.com/libplctag/libplctag) python wrapper. 
 
-Still work in progress but currently functional for reading most atomic types and strings as well as getting tags from ControlLogix PLCs.
+Still work in progress but currently functional for reading atomic types and strings as well as getting tags from ControlLogix PLCs.
 
 Intended to be used solely as a testing tool (not fit for any production environment).
 
