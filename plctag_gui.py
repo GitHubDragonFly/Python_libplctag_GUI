@@ -26,6 +26,7 @@ ipAddress = '192.168.1.24'
 path = '1,3'
 myTag = 'CT_DINT'
 timeout = 10000
+bitIndex = -1
 tagID = -1
 
 ab_plc_type = ['controllogix', 'logixpccc', 'micro800', 'micrologix', 'slc500', 'plc5', 'njnx']
@@ -109,7 +110,7 @@ def main():
     frame1.pack(fill=X)
 
     # add listboxes for PLCs, DataTypes, PID, Bits, Custom String Length, Bool Display and Tags
-    lbPLC = Listbox(frame1, height=11, width=12, bg='lightgreen')
+    lbPLC = Listbox(frame1, height=11, width=11, bg='lightgreen')
     lbDataType = Listbox(frame1, height=11, width=13, bg='lightblue')
     lbPID = Listbox(frame1, height=11, width=6, bg='lightgreen')
     lbBit = Listbox(frame1, height=11, width=6, bg='lightblue')
@@ -124,7 +125,7 @@ def main():
         lbPLC.insert(i, plc)
         i = i + 1
 
-    lbPLC.pack(anchor=N, side=LEFT, padx=3, pady=3)
+    lbPLC.pack(anchor=N, side=LEFT, padx=2, pady=3)
 
     # select PLC on the mouse double-click
     lbPLC.bind('<Double-Button-1>', lambda event: plc_select())
@@ -136,13 +137,13 @@ def main():
         lbDataType.insert(i, dataType)
         i = i + 1
 
-    lbDataType.pack(anchor=N, side=LEFT, padx=3, pady=3)
+    lbDataType.pack(anchor=N, side=LEFT, padx=2, pady=3)
 
     # select Data Type on the mouse double-click
     lbDataType.bind('<Double-Button-1>', lambda event: data_type_select())
 
     # add scrollbar for the DataTypes list box
-    scrollbarDataTypes = Scrollbar(frame1, orient='vertical', command=lbDataType.yview)
+    scrollbarDataTypes = Scrollbar(frame1, orient='vertical', width=3, command=lbDataType.yview)
     scrollbarDataTypes.pack(anchor=N, side=LEFT, pady=3, ipady=65)
     lbDataType.config(yscrollcommand = scrollbarDataTypes.set)
 
@@ -160,7 +161,7 @@ def main():
     lbPID.bind('<Double-Button-1>', lambda event: pid_select())
 
     # add scrollbar for the PID list box
-    scrollbarPID = Scrollbar(frame1, orient='vertical', command=lbPID.yview)
+    scrollbarPID = Scrollbar(frame1, orient='vertical', width=3, command=lbPID.yview)
     scrollbarPID.pack(anchor=N, side=LEFT, pady=3, ipady=65)
     lbPID.config(yscrollcommand = scrollbarPID.set)
 
@@ -177,7 +178,7 @@ def main():
     lbBit.bind('<Double-Button-1>', lambda event: bit_select())
 
     # add scrollbar for the Bit list box
-    scrollbarBit = Scrollbar(frame1, orient='vertical', command=lbBit.yview)
+    scrollbarBit = Scrollbar(frame1, orient='vertical', width=3, command=lbBit.yview)
     scrollbarBit.pack(anchor=N, side=LEFT, pady=3, ipady=65)
     lbBit.config(yscrollcommand = scrollbarBit.set)
 
@@ -195,7 +196,7 @@ def main():
     lbStringLength.bind('<Double-Button-1>', lambda event: string_length_select())
 
     # add scrollbar for the string length listbox
-    scrollbarStringLength = Scrollbar(frame1, orient='vertical', command=lbStringLength.yview)
+    scrollbarStringLength = Scrollbar(frame1, orient='vertical', width=3, command=lbStringLength.yview)
     scrollbarStringLength.pack(anchor=N, side=LEFT, pady=3, ipady=65)
     lbStringLength.config(yscrollcommand = scrollbarStringLength.set)
 
@@ -212,7 +213,7 @@ def main():
     lbBoolDisplay.bind('<Double-Button-1>', lambda event: bool_display_select())
 
     # add scrollbar for the Tags list box
-    scrollbarTags = Scrollbar(frame1, orient='vertical', command=lbTags.yview)
+    scrollbarTags = Scrollbar(frame1, orient='vertical', width=3, command=lbTags.yview)
     scrollbarTags.pack(anchor=N, side=RIGHT, padx=3, pady=3, ipady=65)
     lbTags.config(yscrollcommand = scrollbarTags.set)
 
@@ -224,41 +225,41 @@ def main():
     frame2 = Frame(root, background='#837DFF')
     frame2.pack(fill=X)
 
-    # add Get Tags button
-    btnGetTags = Button(frame2, text = 'Get Tags', fg ='brown', height=1, width=9, relief=RAISED, command=start_get_tags)
-    btnGetTags.pack(side=RIGHT, padx=3, pady=1)
-
     # add text boxes to serve as labels showing currently selected PLC, DataType, PID, Bit, StringLength and BoolDisplay
     selectedPLC = StringVar()
-    tbPLC = Entry(frame2, justify=CENTER, textvariable=selectedPLC, width=12, fg='blue', state='readonly')
+    tbPLC = Entry(frame2, justify=CENTER, textvariable=selectedPLC, width=11, fg='blue', state='readonly')
     selectedPLC.set('controllogix')
-    tbPLC.pack(side=LEFT, padx=3, pady=1)
+    tbPLC.pack(side=LEFT, padx=2, pady=1)
     selectedDataType = StringVar()
     tbDataType = Entry(frame2, justify=CENTER, textvariable=selectedDataType, width=13, fg='blue', state='readonly')
     selectedDataType.set('int8')
-    tbDataType.pack(side=LEFT, padx=3, pady=1)
+    tbDataType.pack(side=LEFT, padx=2, pady=1)
     selectedPID = StringVar()
     tbPID = Entry(frame2, justify=CENTER, textvariable=selectedPID, width=6, fg='blue', state='readonly')
     selectedPID.set('None')
-    tbPID.pack(side=LEFT, padx=18, pady=1)
+    tbPID.pack(side=LEFT, padx=5, pady=1)
     selectedBit = StringVar()
     tbBit = Entry(frame2, justify=CENTER, textvariable=selectedBit, width=6, fg='blue', state='readonly')
     selectedBit.set('None')
-    tbBit.pack(side=LEFT, padx=8, pady=1)
+    tbBit.pack(side=LEFT, padx=4, pady=1)
     selectedStringLength = StringVar()
     tbStringLength = Entry(frame2, justify=CENTER, textvariable=selectedStringLength, width=8, fg='blue', state='readonly')
     selectedStringLength.set('1')
-    tbStringLength.pack(side=LEFT, padx=11, pady=1)
+    tbStringLength.pack(side=LEFT, padx=5, pady=1)
     selectedBoolDisplay = StringVar()
     tbBoolDisplay = Entry(frame2, justify=CENTER, textvariable=selectedBoolDisplay, width=10, fg='blue', state='readonly')
     selectedBoolDisplay.set('True : False')
-    tbBoolDisplay.pack(side=LEFT, padx=13, pady=1)
+    tbBoolDisplay.pack(side=LEFT, padx=5, pady=1)
+
+    # add Get Tags button
+    btnGetTags = Button(frame2, text = 'Get Tags', fg ='brown', height=1, width=7, relief=RAISED, command=start_get_tags)
+    btnGetTags.pack(side=RIGHT, padx=3, pady=1)
 
     frame3 = Frame(root, background='#837DFF')
     frame3.pack(fill=X)
 
     # create a label and a text box for the Tag entry
-    lblTag = Label(frame3, text='Tag to Read', fg='black', bg='#837DFF', font='Helvetica 9 italic')
+    lblTag = Label(frame3, text='Tag to Read', fg='black', bg='#837DFF', font='Helvetica 8 italic')
     lblTag.pack(anchor=CENTER, side=TOP, pady=5)
     selectedTag = StringVar()
     tbTag = Entry(frame3, justify=CENTER, textvariable=selectedTag, font='Helvetica 10 bold', width=90, relief=RAISED)
@@ -269,23 +270,34 @@ def main():
     popup_menu_tbTag.add_command(label='Paste', command=tag_paste)
     tbTag.bind('<Button-3>', lambda event: tag_menu(event, tbTag))
 
-    tbTag.pack(anchor=CENTER, side=TOP, pady=1)
+    tbTag.pack(anchor=CENTER, side=TOP)
 
     # create a label to display the received tag value
     tagValue = Label(frame3, text='~', fg='yellow', bg='navy', font='Helvetica 24', width=33, relief=SUNKEN)
     tagValue.pack(anchor=CENTER, side=TOP, pady=4)
 
-    frame4 = Frame(root, background='#837DFF')
-    frame4.pack(side=BOTTOM, fill=X)
+    frame4 = Frame(root, height=30, background='#837DFF')
+    frame4.pack(fill=X)
+
+    # add a button to start updating tag value
+    btnStart = Button(frame4, text = 'Start Update', state='normal', fg ='blue', height=1, width=9, relief=RAISED, command=start_update)
+    btnStart.place(anchor=CENTER, relx=0.37, rely=0.55)
+
+    # add a button to stop updating tag value
+    btnStop = Button(frame4, text = 'Stop Update', state='disabled', fg ='blue', height=1, width=9, relief=RAISED, command=stopUpdateValue)
+    btnStop.place(anchor=CENTER, relx=0.63, rely=0.55)
 
     frame5 = Frame(root, background='#837DFF')
     frame5.pack(side=BOTTOM, fill=X)
 
+    frame6 = Frame(root, background='#837DFF')
+    frame6.pack(side=BOTTOM, fill=X)
+
     # create a label and an entry box for the IPAddress
-    lblIPAddress = Label(frame5, text='IP Address', fg='black', bg='#837DFF', font='Helvetica 9')
+    lblIPAddress = Label(frame6, text='IP Address', fg='black', bg='#837DFF', font='Helvetica 9')
     lblIPAddress.pack(side=LEFT, padx=45)
     selectedIPAddress = StringVar()
-    tbIPAddress = Entry(frame4, justify=CENTER, textvariable=selectedIPAddress, font='Helvetica 9', relief=RAISED)
+    tbIPAddress = Entry(frame5, justify=CENTER, textvariable=selectedIPAddress, font='Helvetica 9', relief=RAISED)
     selectedIPAddress.set(ipAddress)
 
     # add the 'Paste' menu on the mouse right-click
@@ -296,10 +308,10 @@ def main():
     tbIPAddress.pack(side=LEFT, padx=3, pady=3)
 
     # create a label and an entry box for the Path
-    lblPath = Label(frame5, text='Path', fg='black', bg='#837DFF', font='Helvetica 9')
+    lblPath = Label(frame6, text='Path', fg='black', bg='#837DFF', font='Helvetica 9')
     lblPath.pack(side=RIGHT, padx=60)
     selectedPath = StringVar()
-    tbPath = Entry(frame4, justify=CENTER, textvariable=selectedPath, font='Helvetica 9', relief=RAISED)
+    tbPath = Entry(frame5, justify=CENTER, textvariable=selectedPath, font='Helvetica 9', relief=RAISED)
     selectedPath.set(path)
 
     # add the 'Paste' menu on the mouse right-click
@@ -310,16 +322,9 @@ def main():
     tbPath.pack(side=RIGHT, padx=3, pady=3)
 
     # add Exit button
-    btnExit = Button(root, text = 'E x i t', fg ='red', height=1, width=10, relief=RAISED, font='Helvetica 10', command=root.destroy)
+    btnExit = Button(root, text = 'E x i t', fg ='red', height=1, width=7, relief=RAISED, command=root.destroy)
     btnExit.place(anchor=CENTER, relx=0.5, rely=0.97)
 
-    # add a button to start updating tag value
-    btnStart = Button(root, text = 'Start Update', state='normal', fg ='blue', height=1, width=10, relief=RAISED, command=start_update)
-    btnStart.place(anchor=CENTER, relx=0.42, rely=0.56)
-
-    # add a button to stop updating tag value
-    btnStop = Button(root, text = 'Stop Update', state='disabled', fg ='blue', height=1, width=10, relief=RAISED, command=stopUpdateValue)
-    btnStop.place(anchor=CENTER, relx=0.58, rely=0.56)
     start_connection()
 
     root.mainloop()
@@ -537,6 +542,7 @@ def comm_check():
     global ipAddress
     global myTag
     global tagID
+    global bitIndex
 
     cpu = selectedPLC.get()
     ip = selectedIPAddress.get()
@@ -555,6 +561,7 @@ def comm_check():
                     plcTagDestroy(tagID)
 
             dt = selectedDataType.get()
+            elem_count = 1
 
             if dt == 'bool':
                 elem_size = 1
@@ -562,8 +569,14 @@ def comm_check():
                 elem_size = 1
             elif dt == 'int16' or dt == 'uint16':
                 elem_size = 2
-            elif dt == 'int32' or dt == 'uint32' or dt == 'float32':
+            elif dt == 'int32' or dt == 'uint32' or dt == 'float32' or dt == 'bool array':
                 elem_size = 4
+
+                if dt == 'bool array':
+                    if (('[' in myTag) and (not ',' in myTag) and (']' in myTag)):
+                        bitIndex = int(myTag[(myTag.index('[') + 1):(myTag.index(']'))])
+                        elem_count = math.ceil(bitIndex / (elem_size * 8))
+                        myTag = myTag[0:(myTag.index('[') + 1)] + '0' + ']' # Workaround
             elif dt == 'int64' or dt == 'uint64' or dt == 'float64':
                 elem_size = 8
             elif dt == 'custom string':
@@ -583,7 +596,7 @@ def comm_check():
             # 'protocol=ab-eip&gateway=192.168.1.24&path=1,3&cpu=lgx&name=@tags'
             # 'protocol=ab-eip&gateway=192.168.0.100&path=1,3&cpu=lgx&name=Program:MainProgram.@tags'
 
-            stringTag = 'protocol=ab_eip&gateway=' + ipAddress + '&path=' + path + '&cpu=' + plc + '&elem_size=' + str(elem_size) + '&elem_count=1&name=' + myTag
+            stringTag = 'protocol=ab_eip&gateway=' + ipAddress + '&path=' + path + '&cpu=' + plc + '&elem_size=' + str(elem_size) + '&elem_count=' + str(elem_count) + '&name=' + myTag
 
             if int(pythonVersion[0]) >= 3:
                 tagID = plcTagCreate(stringTag.encode('utf-8'), timeout)
@@ -600,8 +613,7 @@ def startUpdateValue():
     Call ourself to update the screen
     '''
 
-    if not tagID > 0:
-        comm_check()
+    comm_check()
 
     if not updateRunning:
         updateRunning = True
@@ -624,6 +636,8 @@ def startUpdateValue():
 
                 if dt == 'bool':
                     tagValue['text'] = set_bool_display(plcTagGetBit(tagID, 0))
+                elif dt == 'bool array':
+                    tagValue['text'] = set_bool_display(plcTagGetBit(tagID, bitIndex))
                 elif dt == 'int8':
                     tagValue['text'] = plcTagGetInt8(tagID, 0)
                 elif dt == 'uint8':
