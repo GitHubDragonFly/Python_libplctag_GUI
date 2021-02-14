@@ -1,7 +1,7 @@
 # PythonTest
 Simple GUI app for [libplctag](https://github.com/libplctag/libplctag) python wrapper. 
 
-Still work in progress but currently functional for reading atomic types and their arrays, strings as well as getting tags from ControlLogix PLCs.
+Still work in progress but currently functional for reading atomic types and their arrays, bits, strings as well as getting tags from ControlLogix PLCs.
 
 Intended to be used solely as a testing tool (not fit for any production environment).
 
@@ -10,9 +10,9 @@ Make sure to check the pictures in the "screenshots" folder on how to setup the 
 Get libplctag libraries and wrapper files here:
 
 - libplctag library [releases](https://github.com/libplctag/libplctag/releases), v2.2.0 recommended
-- libplctag's [__init__.py](https://github.com/libplctag/libplctag/tree/release/src/wrappers/python/plctag) file and modified version of [libplctag.py](https://github.com/libplctag/libplctag/issues/228) file
+- libplctag's [py files](https://github.com/libplctag/libplctag/tree/release/src/wrappers/python/plctag)
 
-Android libraries you can get from my [PhoneTest](https://github.com/GitHubDragonFly/PhoneTest) project or build them yourself by cloning the [libplctag4android](https://github.com/libplctag/libplctag4android) project.
+Android libraries, if you might need them, you can get from my [PhoneTest](https://github.com/GitHubDragonFly/PhoneTest) project or build them yourself by cloning the [libplctag4android](https://github.com/libplctag/libplctag4android) project.
 
 # Functionality
 - Only a single value will be displayed per tag entered, either of string/char/integer/float...etc.
