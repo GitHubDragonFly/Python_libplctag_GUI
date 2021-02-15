@@ -5,10 +5,10 @@ Still work in progress but currently functional for reading atomic types and the
 
 Intended to be used solely as a testing tool (not fit for any production environment).
 
-Make sure to check the pictures in the "screenshots" folder on how to setup the folder structure:
- - the required for Multi OS
- - the optional expanded to include Android as well
- - or just create a folder for the Operating System you will be using (Single OS)
+Make sure to check the pictures in the "screenshots" folder on how to setup the folder structure, each folder with its own library file inside:
+  - the required for Multi OS
+  - the optional expanded to include Android as well
+  - or just create a folder for the Operating System you will be using (Single OS)
 
 Get the libplctag libraries and python wrapper files here:
 
