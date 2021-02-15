@@ -12,7 +12,7 @@ Make sure to check the pictures in the "screenshots" folder on how to setup the 
 
 Get the libplctag libraries and python wrapper files here:
 
-- libplctag library [releases](https://github.com/libplctag/libplctag/releases), v2.2.0 recommended
+- libplctag library [releases](https://github.com/libplctag/libplctag/releases), recommended v2.1.22 to be able to use MicroLogix PID, otherwise use the latest 
 - libplctag's python wrapper [py](https://github.com/libplctag/libplctag/tree/release/src/wrappers/python/plctag) files
 - modified [libplctag.py](https://github.com/libplctag/libplctag/issues/228) file
 
