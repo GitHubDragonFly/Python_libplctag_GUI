@@ -5,12 +5,15 @@ Still work in progress but currently functional for reading atomic types and the
 
 Intended to be used solely as a testing tool (not fit for any production environment).
 
-Make sure to check the pictures in the "screenshots" folder on how to setup the folder structure (the required and the optional expanded for Android).
+Make sure to check the pictures in the "screenshots" folder on how to setup the folder structure:
+ - the required for Multi OS
+ - the optional expanded to include Android as well
+ - or just create a folder for the Operating System you will be using (Single OS)
 
-Get libplctag libraries and wrapper files here:
+Get the libplctag libraries and python wrapper files here:
 
 - libplctag library [releases](https://github.com/libplctag/libplctag/releases), v2.2.0 recommended
-- libplctag's [py files](https://github.com/libplctag/libplctag/tree/release/src/wrappers/python/plctag)
+- libplctag's python wrapper [py](https://github.com/libplctag/libplctag/tree/release/src/wrappers/python/plctag) files
 
 Android libraries, if you might need them, you can get from my [PhoneTest](https://github.com/GitHubDragonFly/PhoneTest) project or build them yourself by cloning the [libplctag4android](https://github.com/libplctag/libplctag4android) project.
 
