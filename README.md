@@ -6,20 +6,22 @@ Still work in progress but currently functional for reading atomic types and the
 Intended to be used solely as a testing tool (not fit for any production environment).
 
 Make sure to check the pictures in the "screenshots" folder on how to setup the folder structure, each folder with its own library file inside:
-  - the required for Multi OS
-  - the optional expanded to include Android as well
-  - or just create a folder for the Operating System you will be using (Single OS)
+- the required for Multi OS
+- the optional expanded to include Android as well
+- or just create a single folder for the Operating System you will be using (Single OS)
 
 Get the libplctag libraries and python wrapper files here:
 
-- libplctag library [releases](https://github.com/libplctag/libplctag/releases), recommended v2.1.22 to be able to use MicroLogix PID, otherwise use the latest 
+- libplctag library [releases](https://github.com/libplctag/libplctag/releases)
+ - v2.1.22 to be able to use MicroLogix PID
+ - otherwise use the latest, which is 2.3.0+
 - libplctag's python wrapper [py](https://github.com/libplctag/libplctag/tree/release/src/wrappers/python/plctag) files
 - modified [libplctag.py](https://github.com/libplctag/libplctag/issues/228) file in case the above is not updated
 
 Android libraries, if you might need them, you can get from my [PhoneTest](https://github.com/GitHubDragonFly/PhoneTest) project or build them yourself by cloning the [libplctag4android](https://github.com/libplctag/libplctag4android) project.
 
 # Functionality
-- Only a single value will be displayed per tag entered, either of string/char/integer/float...etc.
+- Only a single value will be displayed per tag entered, either of string/integer/float...etc.
 - The default values can be changed for the app's startup.
 - The app provides automated READ and doesn't include WRITE functionality.
 - The "Get Tags" button will fetch ControlLogix tags and double-clicking any of the fetched tags will copy it to the clipboard.
