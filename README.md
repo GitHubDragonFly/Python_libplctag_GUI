@@ -6,8 +6,8 @@ Still work in progress but currently functional for reading atomic types and the
 Intended to be used solely as a testing tool (not fit for any production environment).
 
 Make sure to check the pictures in the "screenshots" folder on how to setup the folder structure, each folder with its own library file inside:
-- the required for Multi OS
-- the optional expanded to include Android as well
+- the required folder structure for Multi OS
+- the optional expanded folder structure to include Android as well
 - or just create a single folder for the Operating System you will be using (Single OS)
 
 Get the libplctag libraries and python wrapper files here:
@@ -22,8 +22,8 @@ Android libraries, if you might need them, you can get from my [PhoneTest](https
 
 # Functionality
 - Generally designed to display a single value per tag entered, either of string/integer/float...etc.
-- Multiple consecutive elements can be displayed for certain data types by adding {x} at the end of the tag, where "x" is the number of elements (ex. STRINGArray[0]{5} or N7:0{3}).
-- Bits can be displayed as well, so try to select them from the "~ Bit" box instead of entering it yourself
+- Multiple consecutive elements/bits can be displayed for certain data types by adding "{x}" at the end of the tag, where "x" is the number of elements/bits (ex. CT_STRINGArray[0]{5} or CT_DINT/2{15} or N7:0{3}).
+- Displaying bit(s) - enter your tag, select the starting bit from the "~ Bit" box (instead of entering it yourself) and optionally add "{x}" at the end.
 - Tag status label turns red/green to indicate failure/success. 
 - The default values can be changed for the app's startup, check declarations in the top section of the file.
 - The app provides automated READ and doesn't include WRITE functionality.
