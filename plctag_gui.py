@@ -640,6 +640,12 @@ def comm_check():
             if '/' in myTag:
                 try:
                     bitIndex = int(myTag[myTag.index('/') + 1:])
+
+                    if bitIndex < lbBit.size() - 2:
+                        selectedBit.set(bitIndex)
+                    else:
+                        selectedBit.set('None')
+
                     myTag = myTag[:myTag.index('/')]
                 except Exception as e:
                     print(e)
