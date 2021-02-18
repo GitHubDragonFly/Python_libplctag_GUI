@@ -22,8 +22,9 @@ Android libraries, if you might need them, you can get from my [PhoneTest](https
 
 # Functionality
 - Generally designed to display a single value per tag entered, either of string/integer/float...etc.
+- Bit is requested by using "/" at the end of the tag + bit number.
 - Multiple consecutive elements/bits can be displayed for certain data types by adding "{x}" at the end of the tag, where "x" is the number of elements/bits (ex. CT_STRINGArray[0]{5} or CT_DINT/2{15} or N7:0{3}).
-- Displaying bit(s) - enter your tag, select the starting bit from the "~ Bit" box (instead of entering it yourself) and optionally add "{x}" at the end.
+- Displaying bit(s) - enter your tag, try selecting the starting bit from the "~ Bit" box (instead of entering it yourself) and optionally add "{x}" at the end.
 - Tag status label turns red/green to indicate failure/success. 
 - The default values can be changed for the app's startup, check declarations in the top section of the file.
 - The app provides automated READ and doesn't include WRITE functionality.
