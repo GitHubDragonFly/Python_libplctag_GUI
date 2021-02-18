@@ -21,13 +21,12 @@ except ImportError:
     from tkinter import *
 
 pythonVersion = platform.python_version()
-plc = 'controllogix'
+
+currentPLC = 'controllogix'
 ipAddress = '192.168.1.20'
 path = '1,3'
-myTag = 'CT_DINT'
+myTag = 'CT_STRINGArray[0]{5}'
 timeout = 10000
-bitIndex = -1
-tagID = -1
 
 ab_plc_type = ['controllogix', 'micrologix', 'logixpccc', 'micro800', 'slc500', 'plc5', 'njnx']
 ab_data_type = ['int8', 'uint8', 'int16', 'uint16', 'int32', 'uint32', 'int64', 'uint64', 'float32', 'float64', 'bool', 'bool array', 'string', 'custom string', 'timer', 'counter', 'control']
@@ -83,6 +82,7 @@ def main():
     global updateRunning
     global connectionInProgress
     global connected
+    global bitIndex
     global pidElement
     global plctagVersion
     global offset
@@ -116,8 +116,9 @@ def main():
     root.title('Plctag GUI Test')
     root.geometry('800x600')
 
-    connected, connectionInProgress, updateRunning = False, False, True;
-    currentTag, pidElement, plctagVersion = myTag, 'None', '';
+    connected, connectionInProgress, updateRunning = False, False, True
+    currentTag, pidElement, plctagVersion = myTag, 'None', ''
+    bitIndex, tagID = -1, -1
 
     frame1 = Frame(root, background='#837DFF')
     frame1.pack(fill=X)
@@ -242,11 +243,11 @@ def main():
     # add text boxes to serve as labels showing currently selected PLC, DataType, PID, Bit, StringLength and BoolDisplay
     selectedPLC = StringVar()
     tbPLC = Entry(frame2, justify=CENTER, textvariable=selectedPLC, width=12, fg='blue', state='readonly')
-    selectedPLC.set('controllogix')
+    selectedPLC.set(currentPLC)
     tbPLC.pack(side=LEFT, padx=2, pady=1)
     selectedDataType = StringVar()
     tbDataType = Entry(frame2, justify=CENTER, textvariable=selectedDataType, width=13, fg='blue', state='readonly')
-    selectedDataType.set('int8')
+    selectedDataType.set('string')
     tbDataType.pack(side=LEFT, padx=2, pady=1)
     offsetBitBox = 9
     offsetStringLengthBox = -7
@@ -407,15 +408,15 @@ def get_bit(int, n):
     return ((int >> n & 1) != 0)
 
 def getTags():
-    plc = selectedPLC.get()
+    cpu = selectedPLC.get()
     pth = (selectedPath.get()).replace(' ', '')
-    if plc == 'controllogix':
+    if cpu == 'controllogix':
         controllerTags = []
         j = 1
 
         lbTags.delete(0, 'end')
 
-        stringTag = 'protocol=ab_eip&gateway=' + ipAddress + '&path=' + pth + '&cpu=' + plc + '&name=@tags'
+        stringTag = 'protocol=ab_eip&gateway=' + ipAddress + '&path=' + pth + '&cpu=' + cpu + '&name=@tags'
 
         if int(pythonVersion[0]) >= 3:
             tagID = plc_tag_create(stringTag.encode('utf-8'), timeout)
@@ -441,7 +442,7 @@ def getTags():
 
                 tagType = plc_tag_get_uint16(tagID, offset + 4)
 
-                # tagLength = plc_tag_get_uint16(tagID, offset + 6);
+                # tagLength = plc_tag_get_uint16(tagID, offset + 6)
 
                 systemBit = get_bit(tagType, 12) # bit 12
 
@@ -473,7 +474,7 @@ def getTags():
 
                     i = 0
                     while i < tagNameLength:
-                        tagNameBytes[i] = plc_tag_get_uint8(tagID, offset + i);
+                        tagNameBytes[i] = plc_tag_get_uint8(tagID, offset + i)
                         i += 1
 
                     tagName = tagNameBytes.decode('utf-8')
@@ -489,8 +490,8 @@ def getTags():
 
                     offset += tagNameLength
                 else:
-                    offset += 20;
-                    tagNameLength = plc_tag_get_uint16(tagID, offset);
+                    offset += 20
+                    tagNameLength = plc_tag_get_uint16(tagID, offset)
                     offset += (2 + tagNameLength)
 
             for t in controllerTags:
@@ -504,7 +505,7 @@ def getTags():
         programTags = []
 
         if programName != '':
-            stringTag = 'protocol=ab_eip&gateway=' + ipAddress + '&path=' + path + '&cpu=' + plc + '&name=Program:' + programName + '.@tags'
+            stringTag = 'protocol=ab_eip&gateway=' + ipAddress + '&path=' + path + '&cpu=' + cpu + '&name=Program:' + programName + '.@tags'
 
             if int(pythonVersion[0]) >= 3:
                 tagID = plc_tag_create(stringTag.encode('utf-8'), timeout)
@@ -529,7 +530,7 @@ def getTags():
 
                     tagType = plc_tag_get_uint16(tagID, offset + 4)
 
-                    # tagLength = plc_tag_get_uint16(tagID, offset + 6);
+                    # tagLength = plc_tag_get_uint16(tagID, offset + 6)
 
                     systemBit = get_bit(tagType, 12) # bit 12
 
@@ -561,7 +562,7 @@ def getTags():
 
                         i = 0
                         while i < tagNameLength:
-                            tagNameBytes[i] = plc_tag_get_uint8(tagID, offset + i);
+                            tagNameBytes[i] = plc_tag_get_uint8(tagID, offset + i)
                             i += 1
 
                         tagName = tagNameBytes.decode('utf-8')
@@ -574,8 +575,8 @@ def getTags():
 
                         offset += tagNameLength
                     else:
-                        offset += 20;
-                        tagNameLength = plc_tag_get_uint16(tagID, offset);
+                        offset += 20
+                        tagNameLength = plc_tag_get_uint16(tagID, offset)
                         offset += (2 + tagNameLength)
 
                 for t in programTags:
@@ -589,13 +590,15 @@ def getTags():
         lbTags.insert(1, 'No Tags Retrieved (incorrect PLC type selected)')
 
 def comm_check():
-    global plc
+    global currentPLC
     global path
     global ipAddress
     global lblTagStatus
     global currentTag
     global myTag
     global tagID
+    global elem_size
+    global elem_count
     global bitIndex
     global pidElement
     global connectionInProgress
@@ -610,29 +613,38 @@ def comm_check():
     connectionInProgress = True
 
     if tag != '':
-        if (not connected or tagID < 0 or plc != cpu or ipAddress != ip or path != pth or myTag != tag):
+        if (not connected or tagID < 0 or currentPLC != cpu or ipAddress != ip or path != pth or myTag != tag):
             lblTagStatus['bg'] = 'red'
             btnStart['state'] = 'disabled'
 
-            plc = cpu
+            currentPLC = cpu
             ipAddress = ip
             path = pth.replace(' ', '')
             myTag = tag
             currentTag = myTag
+            elem_count = 1
+            elem_size = 1
 
             if not tagID is None:
                 if tagID > 0:
                     plc_tag_destroy(tagID)
 
+            if ('{' in myTag) and ('}' in myTag):
+                if myTag.index('}') > myTag.index('{') + 1:
+                    try:
+                        elem_count = int(myTag[myTag.index('{') + 1:myTag.index('}')])
+                        myTag = myTag[:myTag.index('{')]
+                    except Exception as e:
+                        print(e)
+
             if '/' in myTag:
                 try:
                     bitIndex = int(myTag[myTag.index('/') + 1:])
-                    myTag = myTag[0:myTag.index('/')]
+                    myTag = myTag[:myTag.index('/')]
                 except Exception as e:
                     print(e)
 
             dt = selectedDataType.get()
-            elem_count = 1
 
             if dt == 'bool':
                 elem_size = 1
@@ -640,27 +652,29 @@ def comm_check():
                 elem_size = 1
             elif dt == 'int16' or dt == 'uint16':
                 elem_size = 2
-            elif dt == 'int32' or dt == 'uint32' or dt == 'float32' or dt == 'bool array':
+            elif dt == 'int32' or dt == 'uint32' or dt == 'float32':
+                elem_size = 4
+            elif dt == 'bool array':
                 elem_size = 4
 
-                if dt == 'bool array':
-                    if (('[' in myTag) and (not ',' in myTag) and (']' in myTag)):
-                        bitIndex = int(myTag[(myTag.index('[') + 1):(myTag.index(']'))])
+                if (('[' in myTag) and not (',' in myTag) and (']' in myTag)):
+                    bitIndex = int(myTag[(myTag.index('[') + 1):(myTag.index(']'))])
+                    if bitIndex > 0:
                         elem_count = math.ceil(bitIndex / (elem_size * 8))
-                        myTag = myTag[0:(myTag.index('[') + 1)] + '0' + ']' # Workaround
+                    myTag = myTag[:myTag.index('[')] + '[0]' # Workaround
             elif dt == 'int64' or dt == 'uint64' or dt == 'float64':
                 elem_size = 8
             elif dt == 'custom string':
                 elem_size = int(math.ceil(int(selectedStringLength.get()) / 8)) * 8
             elif dt == 'string':
-                if plc == 'micro800':
+                if cpu == 'micro800':
                     elem_size = 256
-                elif plc == 'controllogix':
+                elif cpu == 'controllogix':
                     elem_size = 88
                 else:
                     elem_size = 84
             elif dt == 'timer' or dt == 'counter' or dt == 'control':
-                if plc == 'controllogix' or plc == 'micro800':
+                if cpu == 'controllogix' or cpu == 'micro800':
                     if myTag.endsWith('.PRE') or myTag.endsWith('.ACC') or myTag.endsWith('.LEN') or myTag.endsWith('.POS'):
                         elem_size = 4
                     elif myTag.endsWith('.EN') or myTag.endsWith('.TT') or myTag.endsWith('.DN') or myTag.endsWith('.CU') or myTag.endsWith('.CD') or myTag.endsWith('.OV') or myTag.endsWith('.UN') or myTag.endsWith('.UA') or myTag.endsWith('.EU') or myTag.endsWith('.EM') or myTag.endsWith('.ER') or myTag.endsWith('.UL') or myTag.endsWith('.IN') or myTag.endsWith('.FD'):
@@ -677,14 +691,14 @@ def comm_check():
 
                 if '.' in myTag:
                     pidElement = myTag[myTag.index('.') + 1:]
-                    myTag = myTag[0:myTag.index('.')]
+                    myTag = myTag[:myTag.index('.')]
 
             # example addressing:
             # 'protocol=ab_eip&gateway=192.168.1.10&cpu=mlgx&elem_size=4&elem_count=1&name=F8:0&debug=1'
             # 'protocol=ab-eip&gateway=192.168.1.24&path=1,3&cpu=lgx&name=@tags'
             # 'protocol=ab-eip&gateway=192.168.0.100&path=1,3&cpu=lgx&name=Program:MainProgram.@tags'
 
-            stringTag = 'protocol=ab_eip&gateway=' + ipAddress + '&path=' + path + '&cpu=' + plc + '&elem_size=' + str(elem_size) + '&elem_count=' + str(elem_count) + '&name=' + myTag
+            stringTag = 'protocol=ab_eip&gateway=' + ipAddress + '&path=' + path + '&cpu=' + currentPLC + '&elem_size=' + str(elem_size) + '&elem_count=' + str(elem_count) + '&name=' + myTag
 
             if int(pythonVersion[0]) >= 3:
                 tagID = plc_tag_create(stringTag.encode('utf-8'), timeout)
@@ -715,7 +729,7 @@ def comm_check():
         root.after(5000, start_connection)
 
 def start_update_value():
-    global plc
+    global currentPLC
     global path
     global ipAddress
     global myTag
@@ -734,7 +748,12 @@ def start_update_value():
     tag = selectedTag.get()
 
     if tag != '':
-        if not connected or currentTag != tag or plc != cpu or ipAddress != ip or path != pth:
+        if not connected or currentTag != tag or currentPLC != cpu or ipAddress != ip or path != pth:
+            currentTag = tag
+            currentPLC = cpu
+            ipAddress = ip
+            path = pth
+
             if not connectionInProgress:
                 if btnStart['state'] != 'disabled':
                     btnStart['state'] = 'disabled'
@@ -778,30 +797,77 @@ def start_update_value():
                         else:
                             dt = selectedDataType.get()
 
+                            z = 0
+                            strValues = ''
+
                             if dt == 'bool':
                                 tagValue['text'] = set_bool_display(plc_tag_get_bit(tagID, 0))
-                            elif dt == 'bool array' or bitIndex > -1:
-                                tagValue['text'] = set_bool_display(plc_tag_get_bit(tagID, bitIndex))
+                            elif (dt == 'bool array') or (bitIndex > -1):
+                                while z < elem_count:
+                                    strValues += set_bool_display(plc_tag_get_bit(tagID, bitIndex + z)) + ', '
+                                    z += 1
+
+                                tagValue['text'] = strValues[:-2]
                             elif dt == 'int8':
-                                tagValue['text'] = plc_tag_get_int8(tagID, 0)
+                                while z < elem_count:
+                                    strValues += str(plc_tag_get_int8(tagID, z * elem_size)) + ', '
+                                    z += 1
+
+                                tagValue['text'] = strValues[:-2]
                             elif dt == 'uint8':
-                                tagValue['text'] = plc_tag_get_uint8(tagID, 0)
+                                while z < elem_count:
+                                    strValues += str(plc_tag_get_uint8(tagID, z * elem_size)) + ', '
+                                    z += 1
+
+                                tagValue['text'] = strValues[:-2]
                             elif dt == 'int16':
-                                tagValue['text'] = plc_tag_get_int16(tagID, 0)
+                                while z < elem_count:
+                                    strValues += str(plc_tag_get_int16(tagID, z * elem_size)) + ', '
+                                    z += 1
+
+                                tagValue['text'] = strValues[:-2]
                             elif dt == 'uint16':
-                                tagValue['text'] = plc_tag_get_uint16(tagID, 0)
+                                while z < elem_count:
+                                    strValues += str(plc_tag_get_uint16(tagID, z * elem_size)) + ', '
+                                    z += 1
+
+                                tagValue['text'] = strValues[:-2]
                             elif dt == 'int32':
-                                tagValue['text'] = plc_tag_get_int32(tagID, 0)
+                                while z < elem_count:
+                                    strValues += str(plc_tag_get_int32(tagID, z * elem_size)) + ', '
+                                    z += 1
+
+                                tagValue['text'] = strValues[:-2]
                             elif dt == 'uint32':
-                                tagValue['text'] = plc_tag_get_uint32(tagID, 0)
+                                while z < elem_count:
+                                    strValues += str(plc_tag_get_uint32(tagID, z * elem_size)) + ', '
+                                    z += 1
+
+                                tagValue['text'] = strValues[:-2]
                             elif dt == 'int64':
-                                tagValue['text'] = plc_tag_get_int64(tagID, 0)
+                                while z < elem_count:
+                                    strValues += str(plc_tag_get_int64(tagID, z * elem_size)) + ', '
+                                    z += 1
+
+                                tagValue['text'] = strValues[:-2]
                             elif dt == 'uint64':
-                                tagValue['text'] = plc_tag_get_uint64(tagID, 0)
+                                while z < elem_count:
+                                    strValues += str(plc_tag_get_uint64(tagID, z * elem_size)) + ', '
+                                    z += 1
+
+                                tagValue['text'] = strValues[:-2]
                             elif dt == 'float32':
-                                tagValue['text'] = plc_tag_get_float32(tagID, 0)
+                                while z < elem_count:
+                                    strValues += str(plc_tag_get_float32(tagID, z * elem_size)) + ', '
+                                    z += 1
+
+                                tagValue['text'] = strValues[:-2]
                             elif dt == 'float64':
-                                tagValue['text'] = plc_tag_get_float64(tagID, 0)
+                                while z < elem_count:
+                                    strValues += str(plc_tag_get_float64(tagID, z * elem_size)) + ', '
+                                    z += 1
+
+                                tagValue['text'] = strValues[:-2]
                             elif dt == 'custom string':
                                 actualStringLength = plc_tag_get_int32(tagID, 0)
                                 strValBytes = []
@@ -813,36 +879,45 @@ def start_update_value():
 
                                 tagValue['text'] = ''.join(map(chr, strValBytes))
                             elif dt == 'string':
-                                if plc == 'micro800':
-                                    strLength = plc_tag_get_uint8(tagID, 0)
+                                while z < elem_count:
                                     strValBytes = []
-
                                     i = 0
-                                    while i < strLength:
-                                        strValBytes.append(plc_tag_get_uint8(tagID, i + 1))
-                                        i += 1
 
-                                    tagValue['text'] = ''.join(map(chr, strValBytes))
-                                elif plc == 'controllogix':
-                                    strLength = plc_tag_get_int32(tagID, 0)
-                                    strValBytes = []
+                                    if cpu == 'micro800':
+                                        strLength = plc_tag_get_uint8(tagID, z * elem_size)
 
-                                    i = 0
-                                    while i < strLength:
-                                        strValBytes.append(plc_tag_get_uint8(tagID, i + 4))
-                                        i += 1
+                                        while i < strLength:
+                                            strValBytes.append(plc_tag_get_uint8(tagID, i + 1 + z * elem_size))
+                                            i += 1
+                                    elif cpu == 'controllogix':
+                                        strLength = plc_tag_get_int32(tagID, z * elem_size)
 
-                                    tagValue['text'] = ''.join(map(chr, strValBytes))
-                                else:
-                                    strLength = plc_tag_get_uint16(tagID, 0)
-                                    strValBytes = []
+                                        while i < strLength:
+                                            strValBytes.append(plc_tag_get_uint8(tagID, i + 4 + z * elem_size))
+                                            i += 1
+                                    else:
+                                        strLength = plc_tag_get_uint16(tagID, z * elem_size)
 
-                                    i = 0
-                                    while i < strLength:
-                                        strValBytes.append(plc_tag_get_uint8(tagID, i + 2))
-                                        i += 1
+                                        result = strLength % 2
 
-                                    tagValue['text'] = ''.join(map(chr, strValBytes))
+                                        if result == 0:
+                                            strValBytes = ['\0'] * strLength
+                                        else:
+                                            strValBytes = ['\0'] * (strLength + 1)
+
+                                        k = 0
+                                        while k < len(strValBytes): # Reverse bytes
+                                            strValBytes[k + 1] = plc_tag_get_uint8(tagID, k + 2 + z * elem_size)
+                                            strValBytes[k] = plc_tag_get_uint8(tagID, k + 3 + z * elem_size)
+                                            k += 2
+
+                                    if len(strValBytes) == 0:
+                                        strValues += '{}' + ', '
+                                    else:
+                                        strValues += (''.join(map(chr, strValBytes))) + ', '
+                                    z += 1
+
+                                tagValue['text'] = strValues[:-2]
                             elif dt == 'timer' or dt == 'counter' or dt == 'control':
                                 pass
                             else: # pid
@@ -909,7 +984,7 @@ def start_update_value():
                                         k += 1
 
                                     if strValues != '':
-                                        tagValue['text'] = strValues[0:-2]
+                                        tagValue['text'] = strValues[:-2]
                     except Exception as e:
                         tagValue['text'] = str(e)
                         connected = False
@@ -940,7 +1015,7 @@ def stop_update_value():
 
         if dt == 'pid':
             lbPID['state'] = 'normal'
-        elif dt != 'string' or dt != 'bool' or dt != 'bool array' or dt != 'timer' or dt != 'counter' or dt != 'control':
+        elif dt != 'custom string' and dt != 'string' and dt != 'bool' and dt != 'bool array' and dt != 'timer' and dt != 'counter' and dt != 'control':
             lbBit['state'] = 'normal'
 
         if not connectionInProgress:
@@ -1096,12 +1171,12 @@ def pid_select():
         selectedPID.set(lbPID.get(ANCHOR))
 
         if selectedPID.get() == 'None':
-            selectedTag.set((selectedTag.get())[0:(selectedTag.get()).find('.')])
+            selectedTag.set((selectedTag.get())[:(selectedTag.get()).find('.')])
         else:
             if not ('.' in selectedTag.get()):
                 selectedTag.set(selectedTag.get() + '.' + selectedPID.get())
             else:
-                selectedTag.set((selectedTag.get())[0:(selectedTag.get()).find('.')] + '.' + selectedPID.get())
+                selectedTag.set((selectedTag.get())[:(selectedTag.get()).find('.')] + '.' + selectedPID.get())
 
 
 def bit_select():
