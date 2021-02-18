@@ -13,8 +13,8 @@ Make sure to check the pictures in the "screenshots" folder on how to setup the 
 Get the libplctag libraries and python wrapper files here:
 
 - libplctag library [releases](https://github.com/libplctag/libplctag/releases)
-  - v2.1.22 to be able to use MicroLogix PID
-  - otherwise use the latest, which is v2.3.0+
+  - use v2.1.22 to enable MicroLogix PID
+  - otherwise use the latest, which is v2.3.2+
 - libplctag's python wrapper [py](https://github.com/libplctag/libplctag/tree/release/src/wrappers/python/plctag) files
   - modified [libplctag.py](https://github.com/libplctag/libplctag/issues/228) file in case the above is not updated
 
@@ -23,6 +23,7 @@ Android libraries, if you might need them, you can get from my [PhoneTest](https
 # Functionality
 - Generally designed to display a single value per tag entered, either of string/integer/float...etc.
 - Multiple consecutive elements can be displayed for certain data types by adding {x} at the end of the tag, where "x" is the number of elements (ex. STRINGArray[0]{5} or N7:0{3}).
+- Bits can be displayed as well, so try to select them from the "~ Bit" box instead of entering it yourself
 - Tag status label turns red/green to indicate failure/success. 
 - The default values can be changed for the app's startup, check declarations in the top section of the file.
 - The app provides automated READ and doesn't include WRITE functionality.
