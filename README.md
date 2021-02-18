@@ -21,8 +21,10 @@ Get the libplctag libraries and python wrapper files here:
 Android libraries, if you might need them, you can get from my [PhoneTest](https://github.com/GitHubDragonFly/PhoneTest) project or build them yourself by cloning the [libplctag4android](https://github.com/libplctag/libplctag4android) project.
 
 # Functionality
-- Only a single value will be displayed per tag entered, either of string/integer/float...etc.
-- The default values can be changed for the app's startup.
+- Generally designed to display a single value per tag entered, either of string/integer/float...etc.
+- Multiple consecutive elements can be displayed for certain data types by adding {x} at the end of the tag, where "x" is the number of elements (ex. STRINGArray[0]{5} or N7:0{3}).
+- Tag status label turns red/green to indicate failure/success. 
+- The default values can be changed for the app's startup, check declarations in the top section of the file.
 - The app provides automated READ and doesn't include WRITE functionality.
 - The "Get Tags" button will fetch ControlLogix tags and double-clicking any of the fetched tags will copy it to the clipboard.
 - The IP Address, Path and Tag text boxes offer right-click "Paste" functionality.
