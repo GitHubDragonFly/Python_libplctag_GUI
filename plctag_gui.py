@@ -698,7 +698,11 @@ def comm_check():
             # 'protocol=ab-eip&gateway=192.168.1.24&path=1,3&cpu=lgx&name=@tags'
             # 'protocol=ab-eip&gateway=192.168.0.100&path=1,3&cpu=lgx&name=Program:MainProgram.@tags'
 
-            stringTag = 'protocol=ab_eip&gateway=' + ipAddress + '&path=' + path + '&cpu=' + currentPLC + '&elem_size=' + str(elem_size) + '&elem_count=' + str(elem_count) + '&name=' + myTag
+            if '/' in currentTag and elem_count > 1:
+                stringTag = 'protocol=ab_eip&gateway=' + ipAddress + '&path=' + path + '&cpu=' + currentPLC + '&elem_size=' + str(elem_size) + '&elem_count=1&name=' + myTag
+            else:
+                stringTag = 'protocol=ab_eip&gateway=' + ipAddress + '&path=' + path + '&cpu=' + currentPLC + '&elem_size=' + str(elem_size) + '&elem_count=' + str(elem_count) + '&name=' + myTag
+
 
             if int(pythonVersion[0]) >= 3:
                 tagID = plc_tag_create(stringTag.encode('utf-8'), timeout)
