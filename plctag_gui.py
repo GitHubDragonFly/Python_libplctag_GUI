@@ -84,6 +84,8 @@ def main():
     global connected
     global bitIndex
     global pidElement
+    global tccElement
+    global tccType
     global plctagVersion
     global offset
     global lblTagStatus
@@ -113,11 +115,11 @@ def main():
 
     root = Tk()
     root.config(background='#837DFF')
-    root.title('Plctag GUI Test')
+    root.title('Plctag GUI - Connection/Read Tester')
     root.geometry('800x600')
 
     connected, connectionInProgress, updateRunning = False, False, True
-    currentTag, pidElement, plctagVersion = myTag, 'None', ''
+    currentTag, tccType, tccElement, pidElement, plctagVersion = myTag, '', 'None', 'None', ''
     bitIndex, tagID = -1, -1
 
     frame1 = Frame(root, background='#837DFF')
@@ -601,6 +603,8 @@ def comm_check():
     global elem_count
     global bitIndex
     global pidElement
+    global tccElement
+    global tccType
     global connectionInProgress
     global connected
 
@@ -610,6 +614,8 @@ def comm_check():
     tag = selectedTag.get()
     bitIndex = -1
     pidElement = 'None'
+    tccElement = 'None'
+    tccType = ''
     connectionInProgress = True
 
     if tag != '':
@@ -681,17 +687,22 @@ def comm_check():
                     elem_size = 84
             elif dt == 'timer' or dt == 'counter' or dt == 'control':
                 if cpu == 'controllogix' or cpu == 'micro800':
-                    if myTag.endsWith('.PRE') or myTag.endsWith('.ACC') or myTag.endsWith('.LEN') or myTag.endsWith('.POS'):
+                    if myTag.endswith('.PRE') or myTag.endswith('.ACC') or myTag.endswith('.LEN') or myTag.endswith('.POS'):
                         elem_size = 4
-                    elif myTag.endsWith('.EN') or myTag.endsWith('.TT') or myTag.endsWith('.DN') or myTag.endsWith('.CU') or myTag.endsWith('.CD') or myTag.endsWith('.OV') or myTag.endsWith('.UN') or myTag.endsWith('.UA') or myTag.endsWith('.EU') or myTag.endsWith('.EM') or myTag.endsWith('.ER') or myTag.endsWith('.UL') or myTag.endsWith('.IN') or myTag.endsWith('.FD'):
+                        tccType = 'int32'
+                    elif myTag.endswith('.EN') or myTag.endswith('.TT') or myTag.endswith('.DN') or myTag.endswith('.CU') or myTag.endswith('.CD') or myTag.endswith('.OV') or myTag.endswith('.UN') or myTag.endswith('.UA') or myTag.endswith('.EU') or myTag.endswith('.EM') or myTag.endswith('.ER') or myTag.endswith('.UL') or myTag.endswith('.IN') or myTag.endswith('.FD'):
                         elem_size = 1
+                        tccType = 'bool'
                     else:
                         elem_size = 12
                 else:
-                    if myTag.endsWith('.PRE') or myTag.endsWith('.ACC') or myTag.endsWith('.LEN') or myTag.endsWith('.POS'):
-                        elem_size = 2
+                    elem_size = 6
+
+                    if '.' in myTag:
+                        tccElement = myTag[myTag.index('.') + 1:]
+                        myTag = myTag[:myTag.index('.')]
                     else:
-                        elem_size = 6
+                        tccElement = 'None'
             else: # pid
                 elem_size = 46
 
@@ -806,6 +817,10 @@ def start_update_value():
                             start_connection()
                         else:
                             dt = selectedDataType.get()
+
+                            if dt == 'timer' or dt == 'counter' or dt == 'control':
+                                if tccType != '':
+                                    dt = tccType
 
                             z = 0
                             strValues = ''
@@ -928,8 +943,103 @@ def start_update_value():
                                     z += 1
 
                                 tagValue['text'] = strValues[:-2]
-                            elif dt == 'timer' or dt == 'counter' or dt == 'control':
-                                pass
+                            elif dt == 'timer':
+                                k = 0
+ 
+                                if cpu == 'controllogix' or cpu == 'micro800':
+                                    while k < 3:
+                                        strValues += str(plc_tag_get_int32(tagID, k * 4)) + ', '
+                                        k += 1
+
+                                    tagValue['text'] = strValues[:-2]
+                                else:
+                                    if tccElement != 'None':
+                                        if tccElement == 'EN':
+                                            tagValue['text'] = set_bool_display(plc_tag_get_bit(tagID, 15))
+                                        elif tccElement == 'TT':
+                                            tagValue['text'] = set_bool_display(plc_tag_get_bit(tagID, 14))
+                                        elif tccElement == 'DN':
+                                            tagValue['text'] = set_bool_display(plc_tag_get_bit(tagID, 13))
+                                        elif tccElement == 'PRE':
+                                            tagValue['text'] = plc_tag_get_int16(tagID, 2)
+                                        elif pidElement == 'ACC':
+                                            tagValue['text'] = plc_tag_get_int16(tagID, 4)
+                                    else:
+                                        while k < 3:
+                                            strValues += str(plc_tag_get_int16(tagID, k * 2)) + ', '
+                                            k += 1
+
+                                        tagValue['text'] = strValues[:-2]
+                            elif dt == 'counter':
+                                k = 0
+ 
+                                if cpu == 'controllogix' or cpu == 'micro800':
+                                    while k < 3:
+                                        strValues += str(plc_tag_get_int32(tagID, k * 4)) + ', '
+                                        k += 1
+
+                                    tagValue['text'] = strValues[:-2]
+                                else:
+                                    if tccElement != 'None':
+                                        if tccElement == 'CU':
+                                            tagValue['text'] = set_bool_display(plc_tag_get_bit(tagID, 15))
+                                        elif tccElement == 'CD':
+                                            tagValue['text'] = set_bool_display(plc_tag_get_bit(tagID, 14))
+                                        elif tccElement == 'DN':
+                                            tagValue['text'] = set_bool_display(plc_tag_get_bit(tagID, 13))
+                                        elif tccElement == 'OV':
+                                            tagValue['text'] = set_bool_display(plc_tag_get_bit(tagID, 12))
+                                        elif tccElement == 'UN':
+                                            tagValue['text'] = set_bool_display(plc_tag_get_bit(tagID, 11))
+                                        elif tccElement == 'UA':
+                                            tagValue['text'] = set_bool_display(plc_tag_get_bit(tagID, 10))
+                                        elif tccElement == 'PRE':
+                                            tagValue['text'] = plc_tag_get_int16(tagID, 2)
+                                        elif pidElement == 'ACC':
+                                            tagValue['text'] = plc_tag_get_int16(tagID, 4)
+                                    else:
+                                        while k < 3:
+                                            strValues += str(plc_tag_get_int16(tagID, k * 2)) + ', '
+                                            k += 1
+
+                                        tagValue['text'] = strValues[:-2]
+                            elif dt == 'control':
+                                k = 0
+ 
+                                if cpu == 'controllogix' or cpu == 'micro800':
+                                    while k < 3:
+                                        strValues += str(plc_tag_get_int32(tagID, k * 4)) + ', '
+                                        k += 1
+
+                                    tagValue['text'] = strValues[:-2]
+                                else:
+                                    if tccElement != 'None':
+                                        if tccElement == 'EN':
+                                            tagValue['text'] = set_bool_display(plc_tag_get_bit(tagID, 15))
+                                        elif tccElement == 'EU':
+                                            tagValue['text'] = set_bool_display(plc_tag_get_bit(tagID, 14))
+                                        elif tccElement == 'DN':
+                                            tagValue['text'] = set_bool_display(plc_tag_get_bit(tagID, 13))
+                                        elif tccElement == 'EM':
+                                            tagValue['text'] = set_bool_display(plc_tag_get_bit(tagID, 12))
+                                        elif tccElement == 'ER':
+                                            tagValue['text'] = set_bool_display(plc_tag_get_bit(tagID, 11))
+                                        elif tccElement == 'UL':
+                                            tagValue['text'] = set_bool_display(plc_tag_get_bit(tagID, 10))
+                                        elif tccElement == 'IN':
+                                            tagValue['text'] = set_bool_display(plc_tag_get_bit(tagID, 9))
+                                        elif tccElement == 'FD':
+                                            tagValue['text'] = set_bool_display(plc_tag_get_bit(tagID, 8))
+                                        elif tccElement == 'LEN':
+                                            tagValue['text'] = plc_tag_get_int16(tagID, 2)
+                                        elif pidElement == 'POS':
+                                            tagValue['text'] = plc_tag_get_int16(tagID, 4)
+                                    else:
+                                        while k < 3:
+                                            strValues += str(plc_tag_get_int16(tagID, k * 2)) + ', '
+                                            k += 1
+
+                                        tagValue['text'] = strValues[:-2]
                             else: # pid
                                 if pidElement != 'None':
                                     if pidElement == 'TM':
