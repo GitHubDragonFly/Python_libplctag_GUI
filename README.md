@@ -43,7 +43,7 @@ All it takes is to:
 
 - Install python on your device (this was tested with v3.9 and v3.6.8 but might work just fine with older versions).
 - Create the required folder structure inside a folder of your choice, copy the corresponding libplctag libraries to their folders, get wrapper files, download plctag_gui.py file and add it to your folder.
-- One way to run it would be from the command prompt in Windows, by navigating to your folder and running the file with "python plctag_gui.py" command.
+- One way to run it would be from the command prompt in Windows, by navigating to your folder and running the file with either "python plctag_gui.py" or "python -m plctag_gui" command.
 
 # Licensing
 This is MIT licensed.
