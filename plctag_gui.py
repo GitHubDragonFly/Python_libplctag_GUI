@@ -1,31 +1,31 @@
 '''
-Create a simple Tkinter window to display discovered devices,
-tags and a single variable.
-Tkinter doesn't come preinstalled on all
-Linux distributions, so you may need to install it.
+Create a simple Tkinter window to display discovered devices, tags and a single variable.
+Tkinter doesn't come preinstalled on all Linux distributions, so you may need to install it.
 For Ubuntu: sudo apt-get install python-tk
 
-Tkinter vs tkinter - Reference: https://stackoverflow.com/questions/17843596/difference-between-tkinter-and-tkinter
+Tkinter vs tkinter
+Reference: https://stackoverflow.com/questions/17843596/difference-between-tkinter-and-tkinter
 '''
 import threading
 import platform
 import time
 import math
-import array
 
 from libplctag import *
 
 try:
     from Tkinter import *
+    import Tkinter.font as tkfont
 except ImportError:
     from tkinter import *
+    import tkinter.font as tkfont
 
 pythonVersion = platform.python_version()
 
 currentPLC = 'controllogix'
-ipAddress = '192.168.1.20'
+ipAddress = '192.168.1.12'
 path = '1,3'
-myTag = 'CT_STRINGArray[0]{5}'
+myTag = 'CT_BOOLArray_1[0]{45}'
 timeout = 10000
 
 ab_plc_type = ['controllogix', 'micrologix', 'logixpccc', 'micro800', 'slc500', 'plc5', 'njnx']
@@ -69,6 +69,7 @@ def main():
     global currentTag
     global stringTag
     global tagValue
+    global realElementCount
     global selectedPath
     global selectedIPAddress
     global selectedPLC
@@ -120,8 +121,11 @@ def main():
 
     connected, connectionInProgress, updateRunning = False, False, True
     currentTag, tccType, tccElement, pidElement, plctagVersion = myTag, '', 'None', 'None', ''
-    bitIndex, tagID = -1, -1
+    bitIndex, tagID, realElementCount = -1, -1, 0
 
+    #-------------------------------------------------------------------------------------------
+
+    # add a frame to hold top widgets
     frame1 = Frame(root, background='#837DFF')
     frame1.pack(fill=X)
 
@@ -163,6 +167,7 @@ def main():
     scrollbarDataTypes.pack(anchor=N, side=LEFT, pady=3, ipady=65)
     lbDataType.config(yscrollcommand = scrollbarDataTypes.set)
 
+    # conditional addition of MicroLogix PID list box, for plctag library version lower than 2.2.0
     if plc_tag_check_lib_version(2, 2, 0) != 0:
         lbPID.insert(1, '~ PID')
 
@@ -239,6 +244,9 @@ def main():
 
     lbTags.pack(anchor=N, side=RIGHT, pady=3)
 
+    #-------------------------------------------------------------------------------------------
+
+    # add a frame to hold labels, Program Name entry box and Get Tags button
     frame2 = Frame(root, background='#837DFF')
     frame2.pack(fill=X)
 
@@ -249,11 +257,15 @@ def main():
     tbPLC.pack(side=LEFT, padx=2, pady=1)
     selectedDataType = StringVar()
     tbDataType = Entry(frame2, justify=CENTER, textvariable=selectedDataType, width=13, fg='blue', state='readonly')
-    selectedDataType.set('string')
+    selectedDataType.set('bool array')
     tbDataType.pack(side=LEFT, padx=2, pady=1)
+
+    # offsets used for positioning Bit, String Length and Bool Display list boxes (when PID list box is not included)
     offsetBitBox = 9
     offsetStringLengthBox = -7
     offsetBoolBox = 6
+
+    # conditional addition of the PID list box, for plctag library version lower than 2.2.0
     if plc_tag_check_lib_version(2, 2, 0) != 0:
         selectedPID = StringVar()
         tbPID = Entry(frame2, justify=CENTER, textvariable=selectedPID, width=6, fg='blue', state='readonly')
@@ -262,6 +274,7 @@ def main():
         offsetBitBox = 0
         offsetStringLengthBox = 0
         offsetBoolBox = 0
+
     selectedBit = StringVar()
     tbBit = Entry(frame2, justify=CENTER, textvariable=selectedBit, width=6, fg='blue', state='readonly')
     selectedBit.set('None')
@@ -291,38 +304,9 @@ def main():
 
     tbProgramName.pack(side=RIGHT, padx=20, pady=1)
 
-    frame3 = Frame(root, background='#837DFF')
-    frame3.pack(fill=X)
+    #-------------------------------------------------------------------------------------------
 
-    # create a label and a text box for the Tag entry
-    lblTag = Label(frame3, text='Tag to Read', fg='black', bg='#837DFF', font='Helvetica 8 italic')
-    lblTag.pack(anchor=CENTER, side=TOP, pady=5)
-    selectedTag = StringVar()
-    tbTag = Entry(frame3, justify=CENTER, textvariable=selectedTag, font='Helvetica 11', width=80, relief=RAISED)
-    selectedTag.set(myTag)
-
-    # add the 'Paste' menu on the mouse right-click
-    popup_menu_tbTag = Menu(tbTag, tearoff=0)
-    popup_menu_tbTag.add_command(label='Paste', command=tag_paste)
-    tbTag.bind('<Button-3>', lambda event: tag_menu(event, tbTag))
-
-    tbTag.pack(anchor=CENTER, side=TOP)
-
-    # create a label to display the received tag value
-    tagValue = Label(frame3, text='~', fg='yellow', bg='navy', font='Helvetica 18', width=52, relief=SUNKEN)
-    tagValue.pack(anchor=CENTER, side=TOP, pady=4)
-
-    frame4 = Frame(root, height=30, background='#837DFF')
-    frame4.pack(fill=X)
-
-    # add a button to start updating tag value
-    btnStart = Button(frame4, text = 'Start Update', state='disabled', fg ='blue', height=1, width=10, relief=RAISED, command=start_update)
-    btnStart.place(anchor=CENTER, relx=0.37, rely=0.55)
-
-    # add a button to stop updating tag value
-    btnStop = Button(frame4, text = 'Stop Update', state='disabled', fg ='blue', height=1, width=10, relief=RAISED, command=stop_update_value)
-    btnStop.place(anchor=CENTER, relx=0.63, rely=0.55)
-
+    # add frames to hold bottom widgets
     frame5 = Frame(root, background='#837DFF')
     frame5.pack(side=BOTTOM, fill=X)
 
@@ -370,9 +354,57 @@ def main():
     lblLibraryVersion = Label(frame5, text=' libplctag ' + plctagVersion + ' ', fg='black', bg='#837DFF', font='Helvetica 9')
     lblLibraryVersion.pack(side=RIGHT, padx=5)
 
-    # add Exit button
+    #-------------------------------------------------------------------------------------------
+
+    # add a frame to hold center widgets
+    frame3 = Frame(root, background='#837DFF')
+    frame3.pack(fill=X)
+
+    # create a label for the Tag entry
+    lblTag = Label(frame3, text='Tag to Read', fg='black', bg='#837DFF', font='Helvetica 8 italic')
+    lblTag.pack(anchor='center', pady=10)
+
+    # add a button to start updating tag value
+    btnStart = Button(frame3, text = 'Start Update', state='disabled', bg='lightgrey', fg ='blue', height=1, width=10, relief=RAISED, command=start_update)
+    btnStart.pack(side='left', padx=3, pady=1)
+
+    # add a button to stop updating tag value
+    btnStop = Button(frame3, text = 'Stop Update', state='disabled', bg='lightgrey', fg ='blue', height=1, width=10, relief=RAISED, command=stop_update_value)
+    btnStop.pack(side='right', padx=3, pady=1)
+
+    # create a text box for the Tag entry
+    fnt = tkfont.Font(family="Helvetica", size=11, weight="normal")
+    char_width = fnt.measure("0")
+    selectedTag = StringVar()
+    tbTag = Entry(frame3, justify='center', textvariable=selectedTag, font='Helvetica 11', width=(int(800 / char_width) - 22), relief=RAISED)
+    selectedTag.set(myTag)
+
+    # add the 'Paste' menu on the mouse right-click
+    popup_menu_tbTag = Menu(tbTag, tearoff=0)
+    popup_menu_tbTag.add_command(label='Paste', command=tag_paste)
+    tbTag.bind('<Button-3>', lambda event: tag_menu(event, tbTag))
+
+    tbTag.place(anchor='center', relx=0.5, rely=0.775)
+
+    #-------------------------------------------------------------------------------------------
+
+    # add a frame to hold the label displaying the tag value
+    frame4 = Frame(root, background='#837DFF')
+    frame4.pack(fill=X)
+
+    # create a label to display the received tag value
+    fnt = tkfont.Font(family="Helvetica", size=18, weight="normal")
+    char_width = fnt.measure("0")
+    tagValue = Label(frame4, text='~', fg='yellow', bg='navy', font='Helvetica 18', width=(int(800 / char_width - 4.5)), wraplength=800, relief=SUNKEN)
+    tagValue.pack(anchor='center', pady=5)
+
+    #-------------------------------------------------------------------------------------------
+
+    # add unframed Exit button (relatively positioned on the bottom)
     btnExit = Button(root, text = 'E x i t', fg ='red', height=1, width=8, relief=RAISED, command=root.destroy)
-    btnExit.place(anchor=CENTER, relx=0.5, rely=0.97)
+    btnExit.place(anchor='center', relx=0.5, rely=0.97)
+
+    #-------------------------------------------------------------------------------------------
 
     start_connection()
 
@@ -602,6 +634,7 @@ def comm_check():
     global elem_size
     global elem_count
     global bitIndex
+    global realElementCount
     global pidElement
     global tccElement
     global tccType
@@ -613,6 +646,7 @@ def comm_check():
     pth = selectedPath.get()
     tag = selectedTag.get()
     bitIndex = -1
+    realElementCount = 0
     pidElement = 'None'
     tccElement = 'None'
     tccType = ''
@@ -635,13 +669,12 @@ def comm_check():
                 if tagID > 0:
                     plc_tag_destroy(tagID)
 
-            if ('{' in myTag) and ('}' in myTag):
-                if myTag.index('}') > myTag.index('{') + 1:
-                    try:
-                        elem_count = int(myTag[myTag.index('{') + 1:myTag.index('}')])
-                        myTag = myTag[:myTag.index('{')]
-                    except Exception as e:
-                        print(e)
+            if (myTag.endswith('}')) and ('{' in myTag):
+                try:
+                    elem_count = int(myTag[myTag.index('{') + 1:myTag.index('}')])
+                    myTag = myTag[:myTag.index('{')]
+                except Exception as e:
+                    print(e)
 
             if '/' in myTag:
                 try:
@@ -669,11 +702,12 @@ def comm_check():
             elif dt == 'bool array':
                 elem_size = 4
 
-                if (('[' in myTag) and not (',' in myTag) and (']' in myTag)):
-                    bitIndex = int(myTag[(myTag.index('[') + 1):(myTag.index(']'))])
-                    if bitIndex > 0:
-                        elem_count = math.ceil(bitIndex / (elem_size * 8))
-                    myTag = myTag[:myTag.index('[')] + '[0]' # Workaround
+                if ((myTag.endswith(']')) and ('[' in myTag)):
+                    if not (',' in myTag):
+                        bitIndex = int(myTag[(myTag.index('[') + 1):myTag.index(']')])
+                        if bitIndex > -1:
+                            realElementCount = math.ceil((bitIndex + elem_count) / (elem_size * 8))
+                        myTag = myTag[:myTag.index('[')] + '[0]' # Workaround
             elif dt == 'int64' or dt == 'uint64' or dt == 'float64':
                 elem_size = 8
             elif dt == 'custom string':
@@ -718,8 +752,10 @@ def comm_check():
             if '/' in currentTag and elem_count > 1:
                 stringTag = 'protocol=ab_eip&gateway=' + ipAddress + '&path=' + path + '&cpu=' + currentPLC + '&elem_size=' + str(elem_size) + '&elem_count=1&name=' + myTag
             else:
-                stringTag = 'protocol=ab_eip&gateway=' + ipAddress + '&path=' + path + '&cpu=' + currentPLC + '&elem_size=' + str(elem_size) + '&elem_count=' + str(elem_count) + '&name=' + myTag
-
+                if realElementCount > 0:
+                    stringTag = 'protocol=ab_eip&gateway=' + ipAddress + '&path=' + path + '&cpu=' + currentPLC + '&elem_size=' + str(elem_size) + '&elem_count=' + str(realElementCount) + '&name=' + myTag
+                else:
+                    stringTag = 'protocol=ab_eip&gateway=' + ipAddress + '&path=' + path + '&cpu=' + currentPLC + '&elem_size=' + str(elem_size) + '&elem_count=' + str(elem_count) + '&name=' + myTag
 
             if int(pythonVersion[0]) >= 3:
                 tagID = plc_tag_create(stringTag.encode('utf-8'), timeout)
@@ -732,16 +768,20 @@ def comm_check():
             if plc_tag_status(tagID) < 0:
                 plc_tag_destroy(tagID)
                 connected = False
+
                 if btnStop['state'] == 'disabled':
                     btnStart['state'] = 'disabled'
+                    btnStart['bg'] = 'lightgrey'
 
                 root.after(5000, start_connection)
             else:
                 connected = True
                 connectionInProgress = False
-                lblTagStatus['bg'] = 'lightgreen'
+                lblTagStatus['bg'] = 'lime'
+
                 if btnStop['state'] == 'disabled':
                     btnStart['state'] = 'normal'
+                    btnStart['bg'] = 'lime'
                     updateRunning = True
                 else:
                     start_update()
@@ -778,7 +818,9 @@ def start_update_value():
             if not connectionInProgress:
                 if btnStart['state'] != 'disabled':
                     btnStart['state'] = 'disabled'
+                    btnStart['bg'] = 'lightgrey'
                     btnStop['state'] = 'normal'
+                    btnStop['bg'] = 'lime'
                     btnGetTags['state'] = 'disabled'
                     lbPLC['state'] = 'disabled'
                     lbDataType['state'] = 'disabled'
@@ -796,7 +838,9 @@ def start_update_value():
             else:
                 if btnStart['state'] != 'disabled':
                     btnStart['state'] = 'disabled'
+                    btnStart['bg'] = 'lightgrey'
                     btnStop['state'] = 'normal'
+                    btnStop['bg'] = 'lime'
                     btnGetTags['state'] = 'disabled'
                     lbPLC['state'] = 'disabled'
                     lbDataType['state'] = 'disabled'
@@ -1122,8 +1166,11 @@ def stop_update_value():
 
     if updateRunning:
         tagValue['text'] = '~'
-        btnStart['state'] = 'normal'
+        if not connectionInProgress:
+            btnStart['state'] = 'normal'
+            btnStart['bg'] = 'lime'
         btnStop['state'] = 'disabled'
+        btnStop['bg'] = 'lightgrey'
         btnGetTags['state'] = 'normal'
         lbPLC['state'] = 'normal'
         lbDataType['state'] = 'normal'
@@ -1191,7 +1238,7 @@ def plc_select():
         lbDataType.delete(1, 'end')
 
         if plc == 'controllogix' or plc == 'logixpccc' or plc == 'njnx':
-            selectedIPAddress.set('192.168.1.20')
+            selectedIPAddress.set('192.168.1.12')
             selectedPath.set('1,3')
             tbPath['state'] = 'normal'
 
