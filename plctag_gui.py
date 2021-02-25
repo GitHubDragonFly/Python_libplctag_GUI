@@ -725,7 +725,7 @@ def comm_check():
                     elem_count = int(myTag[myTag.index('{') + 1:myTag.index('}')])
                     myTag = myTag[:myTag.index('{')]
                 except Exception as e:
-                    print(e)
+                    pass
 
             if '/' in myTag:
                 try:
@@ -738,7 +738,7 @@ def comm_check():
 
                     myTag = myTag[:myTag.index('/')]
                 except Exception as e:
-                    print(e)
+                    pass
 
             dt = selectedDataType.get()
 
