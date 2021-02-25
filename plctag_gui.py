@@ -10,28 +10,36 @@ import threading
 import platform
 import time
 import math
+import re as regexp
 
 from libplctag import *
 
 try:
+    # Python 2
     from Tkinter import *
     import Tkinter.font as tkfont
 except ImportError:
+    # Python 3
     from tkinter import *
     import tkinter.font as tkfont
 
 pythonVersion = platform.python_version()
 
+# if setting myTag for startup then also set the correct value of myTagDataType
 currentPLC = 'controllogix'
 ipAddress = '192.168.1.12'
 path = '1,3'
-myTag = 'CT_BOOLArray_1[0]{45}'
+myTag = ''
+myTagDataType = ''
 timeout = 10000
 
 ab_plc_type = ['controllogix', 'micrologix', 'logixpccc', 'micro800', 'slc500', 'plc5', 'njnx']
 ab_data_type = ['int8', 'uint8', 'int16', 'uint16', 'int32', 'uint32', 'int64', 'uint64', 'float32', 'float64', 'bool', 'bool array', 'string', 'custom string', 'timer', 'counter', 'control']
 ab_mlgx_data_type = ['int8', 'uint8', 'int16', 'uint16', 'int32', 'uint32', 'int64', 'uint64', 'float32', 'float64', 'string', 'timer', 'counter', 'control', 'pid']
 ab_slcplc5_data_type = ['int8', 'uint8', 'int16', 'uint16', 'int32', 'uint32', 'int64', 'uint64','float32', 'float64', 'string', 'timer', 'counter', 'control']
+timer_bits_words = ['None', 'EN', 'TT', 'DN', 'PRE', 'ACC']
+counter_bits_words = ['None', 'CU', 'CD', 'DN', 'OV', 'UN', 'UA', 'PRE', 'ACC']
+control_bits_words = ['None', 'EN', 'EU', 'DN', 'EM', 'ER', 'UL', 'IN', 'FD', 'LEN', 'POS']
 pid_bits_words = ['None', 'TM', 'AM', 'CM', 'OL', 'RG', 'SC', 'TF', 'DA', 'DB', 'UL', 'LL', 'SP', 'PV', 'DN', 'EN', 'SPS', 'KC', 'Ti', 'TD', 'MAXS', 'MINS', 'ZCD', 'CVH', 'CVL', 'LUT', 'SPV', 'CVP']
 bits_8bit = ['None', '0', '1', '2', '3', '4', '5', '6', '7']
 bits_16bit = ['None', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15']
@@ -75,6 +83,7 @@ def main():
     global selectedPLC
     global selectedDataType
     global selectedPID
+    global selectedTCC
     global selectedBit
     global selectedStringLength
     global selectedTag
@@ -96,6 +105,7 @@ def main():
     global lbPLC
     global lbDataType
     global lbPID
+    global lbTCC
     global lbBit
     global lbStringLength
     global lbBoolDisplay
@@ -129,13 +139,14 @@ def main():
     frame1 = Frame(root, background='#837DFF')
     frame1.pack(fill=X)
 
-    # add listboxes for PLCs, DataTypes, PID, Bits, Custom String Length, Bool Display and Tags
-    lbPLC = Listbox(frame1, height=11, width=12, bg='lightgreen', justify=CENTER)
-    lbDataType = Listbox(frame1, height=11, width=13, bg='lightblue', justify=CENTER)
-    lbPID = Listbox(frame1, height=11, width=6, bg='lightgreen', justify=CENTER)
-    lbBit = Listbox(frame1, height=11, width=6, bg='lightblue', justify=CENTER)
-    lbStringLength = Listbox(frame1, height=11, width=5, bg='lightgreen', justify=CENTER)
-    lbBoolDisplay = Listbox(frame1, height=11, width=9, bg='lightblue', justify=CENTER)
+    # add listboxes for PLCs, DataTypes, PID, Timer/Counter/Control, Bits, Custom String Length, Bool Display and Tags
+    lbPLC = Listbox(frame1, height=11, width=12, bg='lightgreen', justify='center')
+    lbDataType = Listbox(frame1, height=11, width=13, bg='lightblue', justify='center')
+    lbPID = Listbox(frame1, height=11, width=6, bg='lightgreen', justify='center')
+    lbTCC = Listbox(frame1, height=11, width=6, bg='lightgreen', justify='center')
+    lbBit = Listbox(frame1, height=11, width=6, bg='lightblue', justify='center')
+    lbStringLength = Listbox(frame1, height=11, width=5, bg='lightgreen', justify='center')
+    lbBoolDisplay = Listbox(frame1, height=11, width=9, bg='lightblue', justify='center')
     lbTags = Listbox(frame1, height=11, width=50, bg='lightgreen')
 
     lbPLC.insert(1, '~ PLC')
@@ -145,7 +156,7 @@ def main():
         lbPLC.insert(i, plc)
         i = i + 1
 
-    lbPLC.pack(anchor=N, side=LEFT, padx=2, pady=3)
+    lbPLC.pack(anchor='n', side='left', padx=2, pady=3)
 
     # select PLC on the mouse double-click
     lbPLC.bind('<Double-Button-1>', lambda event: plc_select())
@@ -157,14 +168,14 @@ def main():
         lbDataType.insert(i, dataType)
         i = i + 1
 
-    lbDataType.pack(anchor=N, side=LEFT, padx=2, pady=3)
+    lbDataType.pack(anchor='n', side='left', padx=2, pady=3)
 
     # select Data Type on the mouse double-click
     lbDataType.bind('<Double-Button-1>', lambda event: data_type_select())
 
     # add scrollbar for the DataTypes list box
     scrollbarDataTypes = Scrollbar(frame1, orient='vertical', width=12, command=lbDataType.yview)
-    scrollbarDataTypes.pack(anchor=N, side=LEFT, pady=3, ipady=65)
+    scrollbarDataTypes.pack(anchor='n', side='left', pady=3, ipady=65)
     lbDataType.config(yscrollcommand = scrollbarDataTypes.set)
 
     # conditional addition of MicroLogix PID list box, for plctag library version lower than 2.2.0
@@ -176,16 +187,40 @@ def main():
             lbPID.insert(i, pid)
             i = i + 1
 
-        lbPID.pack(anchor=N, side=LEFT, padx=3, pady=3)
-        lbPID['state'] = 'disabled'
+        lbPID.pack(anchor='n', side='left', padx=3, pady=3)
+        if myTagDataType == 'pid':
+            lbPID['state'] = 'normal'
+        else:
+            lbPID['state'] = 'disabled'
 
         # select PID on the mouse double-click
         lbPID.bind('<Double-Button-1>', lambda event: pid_select())
 
         # add scrollbar for the PID list box
         scrollbarPID = Scrollbar(frame1, orient='vertical', width=12, command=lbPID.yview)
-        scrollbarPID.pack(anchor=N, side=LEFT, pady=3, ipady=65)
+        scrollbarPID.pack(anchor='n', side='left', pady=3, ipady=65)
         lbPID.config(yscrollcommand = scrollbarPID.set)
+
+    lbTCC.insert(1, '~ TCC')
+
+    i = 2
+    for tccELMNT in timer_bits_words:
+        lbTCC.insert(i, tccELMNT)
+        i = i + 1
+
+    lbTCC.pack(anchor='n', side='left', padx=2, pady=3)
+    if myTagDataType == 'timer' or myTagDataType == 'counter' or myTagDataType == 'control':
+        lbTCC['state'] = 'normal'
+    else:
+        lbTCC['state'] = 'disabled'
+
+    # select TCC element on the mouse double-click
+    lbTCC.bind('<Double-Button-1>', lambda event: tcc_select())
+
+    # add scrollbar for the TCC list box
+    scrollbarTCC = Scrollbar(frame1, orient='vertical', width=12, command=lbTCC.yview)
+    scrollbarTCC.pack(anchor='n', side='left', pady=3, ipady=65)
+    lbTCC.config(yscrollcommand = scrollbarTCC.set)
 
     lbBit.insert(1, '~ Bit')
 
@@ -194,14 +229,18 @@ def main():
         lbBit.insert(i, bit)
         i = i + 1
 
-    lbBit.pack(anchor=N, side=LEFT, padx=3, pady=3)
+    lbBit.pack(anchor='n', side='left', padx=3, pady=3)
+    if regexp.match('.int.+', myTagDataType) or regexp.match('int.+', myTagDataType) or regexp.match('float.+', myTagDataType):
+        lbBit['state'] = 'normal'
+    else:
+        lbBit['state'] = 'disabled'
 
     # select Bit on the mouse double-click
     lbBit.bind('<Double-Button-1>', lambda event: bit_select())
 
     # add scrollbar for the Bit list box
     scrollbarBit = Scrollbar(frame1, orient='vertical', width=12, command=lbBit.yview)
-    scrollbarBit.pack(anchor=N, side=LEFT, pady=3, ipady=65)
+    scrollbarBit.pack(anchor='n', side='left', pady=3, ipady=65)
     lbBit.config(yscrollcommand = scrollbarBit.set)
 
     lbStringLength.insert(1, '~ Str')
@@ -211,15 +250,18 @@ def main():
         lbStringLength.insert(i, strLength)
         i = i + 1
 
-    lbStringLength.pack(anchor=N, side=LEFT, padx=3, pady=3)
-    lbStringLength['state'] = 'disabled'
+    lbStringLength.pack(anchor='n', side='left', padx=3, pady=3)
+    if myTagDataType == 'custom string':
+        lbStringLength['state'] = 'normal'
+    else:
+        lbStringLength['state'] = 'disabled'
 
     # select string length on the mouse double-click
     lbStringLength.bind('<Double-Button-1>', lambda event: string_length_select())
 
     # add scrollbar for the string length listbox
     scrollbarStringLength = Scrollbar(frame1, orient='vertical', width=12, command=lbStringLength.yview)
-    scrollbarStringLength.pack(anchor=N, side=LEFT, pady=3, ipady=65)
+    scrollbarStringLength.pack(anchor='n', side='left', pady=3, ipady=65)
     lbStringLength.config(yscrollcommand = scrollbarStringLength.set)
 
     lbBoolDisplay.insert(1, '~ Bool')
@@ -229,20 +271,20 @@ def main():
         lbBoolDisplay.insert(i, boolDisplay)
         i = i + 1
 
-    lbBoolDisplay.pack(anchor=N, side=LEFT, padx=3, pady=3)
+    lbBoolDisplay.pack(anchor='n', side='left', padx=3, pady=3)
 
     # select boolean display format on the mouse double-click
     lbBoolDisplay.bind('<Double-Button-1>', lambda event: bool_display_select())
 
     # add scrollbar for the Tags list box
     scrollbarTags = Scrollbar(frame1, orient='vertical', width=12, command=lbTags.yview)
-    scrollbarTags.pack(anchor=N, side=RIGHT, padx=3, pady=3, ipady=65)
+    scrollbarTags.pack(anchor='n', side='right', padx=3, pady=3, ipady=65)
     lbTags.config(yscrollcommand = scrollbarTags.set)
 
     # copy selected tag to the clipboard on the mouse double-click
     lbTags.bind('<Double-Button-1>', lambda event: tag_copy())
 
-    lbTags.pack(anchor=N, side=RIGHT, pady=3)
+    lbTags.pack(anchor='n', side='right', pady=3)
 
     #-------------------------------------------------------------------------------------------
 
@@ -252,49 +294,58 @@ def main():
 
     # add text boxes to serve as labels showing currently selected PLC, DataType, PID, Bit, StringLength and BoolDisplay
     selectedPLC = StringVar()
-    tbPLC = Entry(frame2, justify=CENTER, textvariable=selectedPLC, width=12, fg='blue', state='readonly')
+    tbPLC = Entry(frame2, justify='center', textvariable=selectedPLC, width=12, fg='blue', state='readonly')
     selectedPLC.set(currentPLC)
-    tbPLC.pack(side=LEFT, padx=2, pady=1)
+    tbPLC.pack(side='left', padx=2, pady=1)
     selectedDataType = StringVar()
-    tbDataType = Entry(frame2, justify=CENTER, textvariable=selectedDataType, width=13, fg='blue', state='readonly')
-    selectedDataType.set('bool array')
-    tbDataType.pack(side=LEFT, padx=2, pady=1)
+    tbDataType = Entry(frame2, justify='center', textvariable=selectedDataType, width=13, fg='blue', state='readonly')
+    if myTagDataType == '':
+        selectedDataType.set('int8')
+    else:
+        selectedDataType.set(myTagDataType)
+    tbDataType.pack(side='left', padx=2, pady=1)
 
-    # offsets used for positioning Bit, String Length and Bool Display list boxes (when PID list box is not included)
-    offsetBitBox = 9
-    offsetStringLengthBox = -7
-    offsetBoolBox = 6
+    # offsets used for positioning TCC, Bit, String Length and Bool Display list boxes (when PID list box is not included)
+    offsetTCCBox = 9
+    offsetBitBox = -7
+    offsetStringLengthBox = 5
+    offsetBoolBox = -4
 
     # conditional addition of the PID list box, for plctag library version lower than 2.2.0
     if plc_tag_check_lib_version(2, 2, 0) != 0:
         selectedPID = StringVar()
-        tbPID = Entry(frame2, justify=CENTER, textvariable=selectedPID, width=6, fg='blue', state='readonly')
+        tbPID = Entry(frame2, justify='center', textvariable=selectedPID, width=6, fg='blue', state='readonly')
         selectedPID.set('None')
-        tbPID.pack(side=LEFT, padx=14, pady=1)
+        tbPID.pack(side='left', padx=14, pady=1)
+        offsetTCCBox = 0
         offsetBitBox = 0
         offsetStringLengthBox = 0
         offsetBoolBox = 0
 
+    selectedTCC = StringVar()
+    tbTCC = Entry(frame2, justify='center', textvariable=selectedTCC, width=6, fg='blue', state='readonly')
+    selectedTCC.set('None')
+    tbTCC.pack(side='left', padx=4 + offsetTCCBox, pady=1)
     selectedBit = StringVar()
-    tbBit = Entry(frame2, justify=CENTER, textvariable=selectedBit, width=6, fg='blue', state='readonly')
+    tbBit = Entry(frame2, justify='center', textvariable=selectedBit, width=6, fg='blue', state='readonly')
     selectedBit.set('None')
-    tbBit.pack(side=LEFT, padx=5 + offsetBitBox, pady=1)
+    tbBit.pack(side='left', padx=12 + offsetBitBox, pady=1)
     selectedStringLength = StringVar()
-    tbStringLength = Entry(frame2, justify=CENTER, textvariable=selectedStringLength, width=5, fg='blue', state='readonly')
+    tbStringLength = Entry(frame2, justify='center', textvariable=selectedStringLength, width=5, fg='blue', state='readonly')
     selectedStringLength.set('1')
-    tbStringLength.pack(side=LEFT, padx=12 + offsetStringLengthBox, pady=1)
+    tbStringLength.pack(side='left', padx=7 + offsetStringLengthBox, pady=1)
     selectedBoolDisplay = StringVar()
-    tbBoolDisplay = Entry(frame2, justify=CENTER, textvariable=selectedBoolDisplay, width=9, fg='blue', state='readonly')
+    tbBoolDisplay = Entry(frame2, justify='center', textvariable=selectedBoolDisplay, width=9, fg='blue', state='readonly')
     selectedBoolDisplay.set('T : F')
-    tbBoolDisplay.pack(side=LEFT, padx=6 + offsetBoolBox, pady=1)
+    tbBoolDisplay.pack(side='left', padx=10 + offsetBoolBox, pady=1)
 
     # add Get Tags button
-    btnGetTags = Button(frame2, text = 'Get Tags', fg ='brown', height=1, width=8, relief=RAISED, command=start_get_tags)
-    btnGetTags.pack(side=RIGHT, padx=3, pady=1)
+    btnGetTags = Button(frame2, text = 'Get Tags', fg ='brown', height=1, width=8, relief='raised', command=start_get_tags)
+    btnGetTags.pack(side='right', padx=3, pady=1)
 
     # add an entry box for the Program Name
     selectedProgramName = StringVar()
-    tbProgramName = Entry(frame2, justify=CENTER, textvariable=selectedProgramName, font='Helvetica 9', relief=RAISED)
+    tbProgramName = Entry(frame2, justify='center', textvariable=selectedProgramName, font='Helvetica 9', relief='raised')
     selectedProgramName.set('MainProgram')
 
     # add the 'Paste' menu on the mouse right-click
@@ -302,22 +353,22 @@ def main():
     popup_menu_tbProgramName.add_command(label='Paste', command=program_name_paste)
     tbProgramName.bind('<Button-3>', lambda event: program_name_menu(event, tbProgramName))
 
-    tbProgramName.pack(side=RIGHT, padx=20, pady=1)
+    tbProgramName.pack(side='right', padx=20, pady=1)
 
     #-------------------------------------------------------------------------------------------
 
     # add frames to hold bottom widgets
     frame5 = Frame(root, background='#837DFF')
-    frame5.pack(side=BOTTOM, fill=X)
+    frame5.pack(side='bottom', fill=X)
 
     frame6 = Frame(root, background='#837DFF')
-    frame6.pack(side=BOTTOM, fill=X)
+    frame6.pack(side='bottom', fill=X)
 
     # create a label and an entry box for the IPAddress
     lblIPAddress = Label(frame6, text='IP Address', fg='black', bg='#837DFF', font='Helvetica 9')
-    lblIPAddress.pack(side=LEFT, padx=45)
+    lblIPAddress.pack(side='left', padx=45)
     selectedIPAddress = StringVar()
-    tbIPAddress = Entry(frame5, justify=CENTER, textvariable=selectedIPAddress, font='Helvetica 9', relief=RAISED)
+    tbIPAddress = Entry(frame5, justify='center', textvariable=selectedIPAddress, font='Helvetica 9', relief='raised')
     selectedIPAddress.set(ipAddress)
 
     # add the 'Paste' menu on the mouse right-click
@@ -325,17 +376,17 @@ def main():
     popup_menu_tbIPAddress.add_command(label='Paste', command=ip_paste)
     tbIPAddress.bind('<Button-3>', lambda event: ip_menu(event, tbIPAddress))
 
-    tbIPAddress.pack(side=LEFT, padx=3, pady=3)
+    tbIPAddress.pack(side='left', padx=3, pady=3)
 
     # create a label for tag status
     lblTagStatus = Label(frame5, text=' tag status ', fg='black', bg='red', font='Helvetica 9')
-    lblTagStatus.pack(side=LEFT, padx=5)
+    lblTagStatus.pack(side='left', padx=5)
 
     # create a label and an entry box for the Path
     lblPath = Label(frame6, text='Path', fg='black', bg='#837DFF', font='Helvetica 9')
-    lblPath.pack(side=RIGHT, padx=60)
+    lblPath.pack(side='right', padx=60)
     selectedPath = StringVar()
-    tbPath = Entry(frame5, justify=CENTER, textvariable=selectedPath, font='Helvetica 9', relief=RAISED)
+    tbPath = Entry(frame5, justify='center', textvariable=selectedPath, font='Helvetica 9', relief='raised')
     selectedPath.set(path)
 
     # add the 'Paste' menu on the mouse right-click
@@ -343,7 +394,7 @@ def main():
     popup_menu_tbPath.add_command(label='Paste', command=path_paste)
     tbPath.bind('<Button-3>', lambda event: path_menu(event, tbPath))
 
-    tbPath.pack(side=RIGHT, padx=3, pady=3)
+    tbPath.pack(side='right', padx=3, pady=3)
 
     if int(pythonVersion[0]) >= 3:
         plctagVersion = str(plc_tag_get_int_attribute(0, ('version_major').encode('utf-8'), 0)) + '.' + str(plc_tag_get_int_attribute(0, ('version_minor').encode('utf-8'), 0)) + '.' + str(plc_tag_get_int_attribute(0, ('version_patch').encode('utf-8'), 0))
@@ -352,7 +403,7 @@ def main():
 
     # create a label for the plctag library version
     lblLibraryVersion = Label(frame5, text=' libplctag ' + plctagVersion + ' ', fg='black', bg='#837DFF', font='Helvetica 9')
-    lblLibraryVersion.pack(side=RIGHT, padx=5)
+    lblLibraryVersion.pack(side='right', padx=5)
 
     #-------------------------------------------------------------------------------------------
 
@@ -361,22 +412,22 @@ def main():
     frame3.pack(fill=X)
 
     # create a label for the Tag entry
-    lblTag = Label(frame3, text='Tag to Read', fg='black', bg='#837DFF', font='Helvetica 8 italic')
+    lblTag = Label(frame3, text='Tag to Read (optional applicable # elements as {x})', fg='black', bg='#837DFF', font='Helvetica 8 italic')
     lblTag.pack(anchor='center', pady=10)
 
     # add a button to start updating tag value
-    btnStart = Button(frame3, text = 'Start Update', state='disabled', bg='lightgrey', fg ='blue', height=1, width=10, relief=RAISED, command=start_update)
+    btnStart = Button(frame3, text = 'Start Update', state='disabled', bg='lightgrey', fg ='blue', height=1, width=10, relief='raised', command=start_update)
     btnStart.pack(side='left', padx=3, pady=1)
 
     # add a button to stop updating tag value
-    btnStop = Button(frame3, text = 'Stop Update', state='disabled', bg='lightgrey', fg ='blue', height=1, width=10, relief=RAISED, command=stop_update_value)
+    btnStop = Button(frame3, text = 'Stop Update', state='disabled', bg='lightgrey', fg ='blue', height=1, width=10, relief='raised', command=stop_update_value)
     btnStop.pack(side='right', padx=3, pady=1)
 
     # create a text box for the Tag entry
     fnt = tkfont.Font(family="Helvetica", size=11, weight="normal")
     char_width = fnt.measure("0")
     selectedTag = StringVar()
-    tbTag = Entry(frame3, justify='center', textvariable=selectedTag, font='Helvetica 11', width=(int(800 / char_width) - 22), relief=RAISED)
+    tbTag = Entry(frame3, justify='center', textvariable=selectedTag, font='Helvetica 11', width=(int(800 / char_width) - 22), relief='raised')
     selectedTag.set(myTag)
 
     # add the 'Paste' menu on the mouse right-click
@@ -395,13 +446,13 @@ def main():
     # create a label to display the received tag value
     fnt = tkfont.Font(family="Helvetica", size=18, weight="normal")
     char_width = fnt.measure("0")
-    tagValue = Label(frame4, text='~', fg='yellow', bg='navy', font='Helvetica 18', width=(int(800 / char_width - 4.5)), wraplength=800, relief=SUNKEN)
+    tagValue = Label(frame4, text='~', fg='yellow', bg='navy', font='Helvetica 18', width=(int(800 / char_width - 4.5)), wraplength=800, relief='sunken')
     tagValue.pack(anchor='center', pady=5)
 
     #-------------------------------------------------------------------------------------------
 
     # add unframed Exit button (relatively positioned on the bottom)
-    btnExit = Button(root, text = 'E x i t', fg ='red', height=1, width=8, relief=RAISED, command=root.destroy)
+    btnExit = Button(root, text = 'E x i t', fg ='red', height=1, width=8, relief='raised', command=root.destroy)
     btnExit.place(anchor='center', relx=0.5, rely=0.97)
 
     #-------------------------------------------------------------------------------------------
@@ -786,8 +837,9 @@ def comm_check():
                 else:
                     start_update()
     else:
+        lblTagStatus['bg'] = 'red'
         tagValue['text'] = '~'
-        root.after(5000, start_connection)
+        root.after(10000, start_connection)
 
 def start_update_value():
     global currentPLC
@@ -1245,6 +1297,7 @@ def plc_select():
             if plc == 'controllogix':
                 btnGetTags['state'] = 'normal'
             else:
+                lbTags.delete(0, 'end')
                 btnGetTags['state'] = 'disabled'
 
             i = 2
@@ -1252,6 +1305,7 @@ def plc_select():
                 lbDataType.insert(i, dataType)
                 i = i + 1
         elif plc == 'micrologix':
+            lbTags.delete(0, 'end')
             selectedIPAddress.set('192.168.1.10')
             selectedPath.set('')
             tbPath['state'] = 'disabled'
@@ -1267,6 +1321,7 @@ def plc_select():
                     lbDataType.insert(i, dataType)
                     i = i + 1
         else:
+            lbTags.delete(0, 'end')
             selectedIPAddress.set('192.168.1.10')
             selectedPath.set('')
             tbPath['state'] = 'disabled'
@@ -1294,41 +1349,64 @@ def data_type_select():
 
         if dt == 'pid':
             lbPID['state'] = 'normal'
+            lbTCC['state'] = 'disabled'
             lbBit['state'] = 'disabled'
             lbStringLength['state'] = 'disabled'
-        elif dt == 'string' or dt == 'bool' or dt == 'bool array' or dt == 'timer' or dt == 'counter' or dt == 'control':
+        elif dt == 'string' or dt == 'bool' or dt == 'bool array':
+            lbPID['state'] = 'disabled'
+            lbTCC['state'] = 'disabled'
+            lbBit['state'] = 'disabled'
+            lbStringLength['state'] = 'disabled'
+        elif dt == 'timer' or dt == 'counter' or dt == 'control':
+            lbTCC['state'] = 'normal'
             lbPID['state'] = 'disabled'
             lbBit['state'] = 'disabled'
             lbStringLength['state'] = 'disabled'
         elif dt == 'custom string':
             lbPID['state'] = 'disabled'
+            lbTCC['state'] = 'disabled'
             lbBit['state'] = 'disabled'
             lbStringLength['state'] = 'normal'
         else:
             lbPID['state'] = 'disabled'
+            lbTCC['state'] = 'disabled'
             lbBit['state'] = 'normal'
             lbStringLength['state'] = 'disabled'
 
-        if lbBit['state'] == 'normal':
+        if lbTCC['state'] == 'normal':
+            lbTCC.delete(1, 'end')
+            i = 2
+
+            if dt == 'timer':
+                for element in timer_bits_words:
+                    lbTCC.insert(i, element)
+                    i = i + 1
+            elif dt == 'counter':
+                for element in counter_bits_words:
+                    lbTCC.insert(i, element)
+                    i = i + 1
+            elif dt == 'control':
+                for element in control_bits_words:
+                    lbTCC.insert(i, element)
+                    i = i + 1
+
+        elif lbBit['state'] == 'normal':
             lbBit.delete(1, 'end')
+            i = 2
 
             if dt == 'int8' or dt == 'uint8':
-                i = 2
                 for bit in bits_8bit:
                     lbBit.insert(i, bit)
                     i = i + 1
             elif dt == 'int16' or dt == 'uint16':
-                i = 2
                 for bit in bits_16bit:
                     lbBit.insert(i, bit)
                     i = i + 1
             elif dt == 'int32' or dt == 'uint32' or dt == 'float32':
-                i = 2
                 for bit in bits_32bit:
                     lbBit.insert(i, bit)
                     i = i + 1
             elif dt == 'int64' or dt == 'uint64' or dt == 'float64':
-                i = 2
                 for bit in bits_64bit:
                     lbBit.insert(i, bit)
                     i = i + 1
@@ -1345,6 +1423,17 @@ def pid_select():
             else:
                 selectedTag.set((selectedTag.get())[:(selectedTag.get()).find('.')] + '.' + selectedPID.get())
 
+def tcc_select():
+    if lbTCC.get(ANCHOR)[0] != '~':
+        selectedTCC.set(lbTCC.get(ANCHOR))
+
+        if selectedTCC.get() == 'None':
+            selectedTag.set((selectedTag.get())[:(selectedTag.get()).find('.')])
+        else:
+            if not ('.' in selectedTag.get()):
+                selectedTag.set(selectedTag.get() + '.' + selectedTCC.get())
+            else:
+                selectedTag.set((selectedTag.get())[:(selectedTag.get()).find('.')] + '.' + selectedTCC.get())
 
 def bit_select():
     if lbBit.get(ANCHOR)[0] != '~':
