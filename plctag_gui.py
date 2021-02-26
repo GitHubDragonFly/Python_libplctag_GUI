@@ -5,12 +5,16 @@ For Ubuntu: sudo apt-get install python-tk
 
 Tkinter vs tkinter
 Reference: https://stackoverflow.com/questions/17843596/difference-between-tkinter-and-tkinter
+
+Window/widget resizing
+Reference: https://stackoverflow.com/questions/22835289/how-to-get-tkinter-canvas-to-dynamically-resize-to-window-width
+
 '''
 import threading
 import platform
 import time
 import math
-import re as regexp
+import re as regexp # regular expressions
 
 from libplctag import *
 
@@ -47,6 +51,30 @@ bits_32bit = ['None', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '1
 bits_64bit = ['None', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46', '47', '48', '49', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59', '60', '61', '62', '63']
 string_length = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46', '47', '48', '49', '50']
 bool_display = ['T : F', '1 : 0', 'On : Off']
+
+# width wise resizing of the tag label (window)
+class LabelResizing(Label):
+    def __init__(self,parent,**kwargs):
+        Label.__init__(self,parent,**kwargs)
+        self.bind("<Configure>", self.on_resize)
+        self.width = self.winfo_width()
+
+    def on_resize(self,event):
+        if self.width > 0:
+            self.width = int((event.width/self.width) * self.width)
+            self.config(width=self.width, wraplength=self.width)
+
+# width wise resizing of the tag entry box (window)
+class EntryResizing(Entry):
+    def __init__(self,parent,**kwargs):
+        Entry.__init__(self,parent,**kwargs)
+        self.bind("<Configure>", self.on_resize)
+        self.width = self.winfo_width()
+
+    def on_resize(self,event):
+        if self.width > 0:
+            self.width = int((event.width/self.width) * self.width)
+            self.config(width=self.width)
 
 class connection_thread(threading.Thread):
    def __init__(self):
@@ -427,7 +455,7 @@ def main():
     fnt = tkfont.Font(family="Helvetica", size=11, weight="normal")
     char_width = fnt.measure("0")
     selectedTag = StringVar()
-    tbTag = Entry(frame3, justify='center', textvariable=selectedTag, font='Helvetica 11', width=(int(800 / char_width) - 22), relief='raised')
+    tbTag = EntryResizing(frame3, justify='center', textvariable=selectedTag, font='Helvetica 11', width=(int(800 / char_width) - 22), relief='raised')
     selectedTag.set(myTag)
 
     # add the 'Paste' menu on the mouse right-click
@@ -435,7 +463,7 @@ def main():
     popup_menu_tbTag.add_command(label='Paste', command=tag_paste)
     tbTag.bind('<Button-3>', lambda event: tag_menu(event, tbTag))
 
-    tbTag.place(anchor='center', relx=0.5, rely=0.775)
+    tbTag.pack(side='left', fill=X)
 
     #-------------------------------------------------------------------------------------------
 
@@ -446,7 +474,7 @@ def main():
     # create a label to display the received tag value
     fnt = tkfont.Font(family="Helvetica", size=18, weight="normal")
     char_width = fnt.measure("0")
-    tagValue = Label(frame4, text='~', fg='yellow', bg='navy', font='Helvetica 18', width=(int(800 / char_width - 4.5)), wraplength=800, relief='sunken')
+    tagValue = LabelResizing(frame4, text='~', fg='yellow', bg='navy', font='Helvetica 18', width=(int(800 / char_width - 4.5)), wraplength=800, relief='sunken')
     tagValue.pack(anchor='center', pady=5)
 
     #-------------------------------------------------------------------------------------------
@@ -456,6 +484,10 @@ def main():
     btnExit.place(anchor='center', relx=0.5, rely=0.97)
 
     #-------------------------------------------------------------------------------------------
+
+    # set the minimum window size to the current size
+    root.update()
+    root.minsize(root.winfo_width(), root.winfo_height())
 
     start_connection()
 
