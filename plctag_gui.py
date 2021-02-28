@@ -21,7 +21,6 @@ from libplctag import *
 try:
     # Python 2
     from Tkinter import *
-    import Tkinter.font as tkfont
 except ImportError:
     # Python 3
     from tkinter import *
@@ -57,11 +56,11 @@ class LabelResizing(Label):
     def __init__(self,parent,**kwargs):
         Label.__init__(self,parent,**kwargs)
         self.bind("<Configure>", self.on_resize)
-        self.width = self.winfo_width()
+        self.width = self.winfo_reqwidth()
 
     def on_resize(self,event):
         if self.width > 0:
-            self.width = int((event.width/self.width) * self.width)
+            self.width = int(event.width)
             self.config(width=self.width, wraplength=self.width)
 
 # width wise resizing of the tag entry box (window)
@@ -69,11 +68,11 @@ class EntryResizing(Entry):
     def __init__(self,parent,**kwargs):
         Entry.__init__(self,parent,**kwargs)
         self.bind("<Configure>", self.on_resize)
-        self.width = self.winfo_width()
+        self.width = self.winfo_reqwidth()
 
     def on_resize(self,event):
         if self.width > 0:
-            self.width = int((event.width/self.width) * self.width)
+            self.width = int(event.width)
             self.config(width=self.width)
 
 class connection_thread(threading.Thread):
@@ -154,7 +153,7 @@ def main():
 
     root = Tk()
     root.config(background='#837DFF')
-    root.title('Plctag GUI - Connection/Read Tester')
+    root.title('Plctag GUI - Connection/Read Tester (Python v' + pythonVersion + ')')
     root.geometry('800x600')
 
     connected, connectionInProgress, updateRunning = False, False, True
@@ -168,13 +167,13 @@ def main():
     frame1.pack(fill=X)
 
     # add listboxes for PLCs, DataTypes, PID, Timer/Counter/Control, Bits, Custom String Length, Bool Display and Tags
-    lbPLC = Listbox(frame1, height=11, width=12, bg='lightgreen', justify='center')
-    lbDataType = Listbox(frame1, height=11, width=13, bg='lightblue', justify='center')
-    lbPID = Listbox(frame1, height=11, width=6, bg='lightgreen', justify='center')
-    lbTCC = Listbox(frame1, height=11, width=6, bg='lightgreen', justify='center')
-    lbBit = Listbox(frame1, height=11, width=6, bg='lightblue', justify='center')
-    lbStringLength = Listbox(frame1, height=11, width=5, bg='lightgreen', justify='center')
-    lbBoolDisplay = Listbox(frame1, height=11, width=9, bg='lightblue', justify='center')
+    lbPLC = Listbox(frame1, height=11, width=12, bg='lightblue')
+    lbDataType = Listbox(frame1, height=11, width=13, bg='lightblue')
+    lbPID = Listbox(frame1, height=11, width=6, bg='lightblue')
+    lbTCC = Listbox(frame1, height=11, width=6, bg='lightblue')
+    lbBit = Listbox(frame1, height=11, width=6, bg='lightblue')
+    lbStringLength = Listbox(frame1, height=11, width=5, bg='lightblue')
+    lbBoolDisplay = Listbox(frame1, height=11, width=9, bg='lightblue')
     lbTags = Listbox(frame1, height=11, width=50, bg='lightgreen')
 
     lbPLC.insert(1, '~ PLC')
@@ -452,8 +451,10 @@ def main():
     btnStop.pack(side='right', padx=3, pady=1)
 
     # create a text box for the Tag entry
-    fnt = tkfont.Font(family="Helvetica", size=11, weight="normal")
-    char_width = fnt.measure("0")
+    char_width = 5
+    if int(pythonVersion[0]) >= 3:
+        fnt = tkfont.Font(family="Helvetica", size=11, weight="normal")
+        char_width = fnt.measure("0")
     selectedTag = StringVar()
     tbTag = EntryResizing(frame3, justify='center', textvariable=selectedTag, font='Helvetica 11', width=(int(800 / char_width) - 22), relief='raised')
     selectedTag.set(myTag)
@@ -472,8 +473,9 @@ def main():
     frame4.pack(fill=X)
 
     # create a label to display the received tag value
-    fnt = tkfont.Font(family="Helvetica", size=18, weight="normal")
-    char_width = fnt.measure("0")
+    if int(pythonVersion[0]) >= 3:
+        fnt = tkfont.Font(family="Helvetica", size=18, weight="normal")
+        char_width = fnt.measure("0")
     tagValue = LabelResizing(frame4, text='~', fg='yellow', bg='navy', font='Helvetica 18', width=(int(800 / char_width - 4.5)), wraplength=800, relief='sunken')
     tagValue.pack(anchor='center', pady=5)
 
@@ -789,7 +791,7 @@ def comm_check():
                     if not (',' in myTag):
                         bitIndex = int(myTag[(myTag.index('[') + 1):myTag.index(']')])
                         if bitIndex > -1:
-                            realElementCount = math.ceil((bitIndex + elem_count) / (elem_size * 8))
+                            realElementCount = int(math.ceil(float(bitIndex + elem_count) / float(elem_size * 8)))
                         myTag = myTag[:myTag.index('[')] + '[0]' # Workaround
             elif dt == 'int64' or dt == 'uint64' or dt == 'float64':
                 elem_size = 8
@@ -860,11 +862,11 @@ def comm_check():
             else:
                 connected = True
                 connectionInProgress = False
-                lblTagStatus['bg'] = 'lime'
+                lblTagStatus['bg'] = 'lightgreen'
 
                 if btnStop['state'] == 'disabled':
                     btnStart['state'] = 'normal'
-                    btnStart['bg'] = 'lime'
+                    btnStart['bg'] = 'lightgreen'
                     updateRunning = True
                 else:
                     start_update()
@@ -904,7 +906,7 @@ def start_update_value():
                     btnStart['state'] = 'disabled'
                     btnStart['bg'] = 'lightgrey'
                     btnStop['state'] = 'normal'
-                    btnStop['bg'] = 'lime'
+                    btnStop['bg'] = 'lightgreen'
                     btnGetTags['state'] = 'disabled'
                     lbPLC['state'] = 'disabled'
                     lbDataType['state'] = 'disabled'
@@ -924,7 +926,7 @@ def start_update_value():
                     btnStart['state'] = 'disabled'
                     btnStart['bg'] = 'lightgrey'
                     btnStop['state'] = 'normal'
-                    btnStop['bg'] = 'lime'
+                    btnStop['bg'] = 'lightgreen'
                     btnGetTags['state'] = 'disabled'
                     lbPLC['state'] = 'disabled'
                     lbDataType['state'] = 'disabled'
@@ -1252,7 +1254,7 @@ def stop_update_value():
         tagValue['text'] = '~'
         if not connectionInProgress:
             btnStart['state'] = 'normal'
-            btnStart['bg'] = 'lime'
+            btnStart['bg'] = 'lightgreen'
         btnStop['state'] = 'disabled'
         btnStop['bg'] = 'lightgrey'
         btnGetTags['state'] = 'normal'
