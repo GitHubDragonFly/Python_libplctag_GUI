@@ -1,5 +1,5 @@
 # PythonTest
-Simple GUI app for [libplctag](https://github.com/libplctag/libplctag) python wrapper. 
+Simple GUI app for the [libplctag](https://github.com/libplctag/libplctag) python wrapper. 
 
 Currently functional for reading atomic types and their arrays, bits, strings, timers, counters, controls from different PLCs and getting tags from ControlLogix PLC.
 
@@ -14,7 +14,7 @@ Get the libplctag libraries and python wrapper files here:
 
 - libplctag library [releases](https://github.com/libplctag/libplctag/releases)
   - use v2.1.22 to be able to use MicroLogix PID
-  - otherwise use the latest, which is v2.3.2+
+  - otherwise use the latest, which is v2.3.4+
 - libplctag's python wrapper [py](https://github.com/libplctag/libplctag/tree/release/src/wrappers/python/plctag) files
   - modified [libplctag.py](https://github.com/libplctag/libplctag/issues/228) file in case the above is not updated
 
