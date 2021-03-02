@@ -1,5 +1,5 @@
 '''
-Create a simple Tkinter window to display discovered devices, tags and a single variable.
+Create a simple Tkinter window to display fetched tags and selected tag value(s).
 Tkinter doesn't come preinstalled on all Linux distributions, so you may need to install it.
 For Ubuntu: sudo apt-get install python-tk
 
@@ -51,7 +51,7 @@ bits_64bit = ['None', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '1
 string_length = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46', '47', '48', '49', '50']
 bool_display = ['T : F', '1 : 0', 'On : Off']
 
-# width wise resizing of the tag label (window)
+# width wise resizing of the label displaying tag value (window)
 class LabelResizing(Label):
     def __init__(self,parent,**kwargs):
         Label.__init__(self,parent,**kwargs)
@@ -789,10 +789,13 @@ def comm_check():
 
                 if ((myTag.endswith(']')) and ('[' in myTag)):
                     if not (',' in myTag):
-                        bitIndex = int(myTag[(myTag.index('[') + 1):myTag.index(']')])
-                        if bitIndex > -1:
-                            realElementCount = int(math.ceil(float(bitIndex + elem_count) / float(elem_size * 8)))
-                        myTag = myTag[:myTag.index('[')] + '[0]' # Workaround
+                        try:
+                            bitIndex = int(myTag[(myTag.index('[') + 1):myTag.index(']')])
+                            if bitIndex > -1:
+                                realElementCount = int(math.ceil(float(bitIndex + elem_count) / float(elem_size * 8)))
+                            myTag = myTag[:myTag.index('[')] + '[0]' # Workaround
+                        except:
+                            pass
             elif dt == 'int64' or dt == 'uint64' or dt == 'float64':
                 elem_size = 8
             elif dt == 'custom string':
@@ -847,9 +850,11 @@ def comm_check():
             else:
                 tagID = plc_tag_create(stringTag, timeout)
 
+            # tag creation pending
             while plc_tag_status(tagID) == 1:
                 time.sleep(0.01)
 
+            # handle the (un)successful tag creation
             if plc_tag_status(tagID) < 0:
                 plc_tag_destroy(tagID)
                 connected = False
@@ -1250,11 +1255,12 @@ def start_update_value():
 def stop_update_value():
     global updateRunning
 
-    if updateRunning:
+    if updateRunning or connectionInProgress:
         tagValue['text'] = '~'
         if not connectionInProgress:
             btnStart['state'] = 'normal'
             btnStart['bg'] = 'lightgreen'
+            updateRunning = False
         btnStop['state'] = 'disabled'
         btnStop['bg'] = 'lightgrey'
         btnGetTags['state'] = 'normal'
@@ -1270,9 +1276,6 @@ def stop_update_value():
             lbPID['state'] = 'normal'
         elif dt != 'custom string' and dt != 'string' and dt != 'bool' and dt != 'bool array' and dt != 'timer' and dt != 'counter' and dt != 'control':
             lbBit['state'] = 'normal'
-
-        if not connectionInProgress:
-            updateRunning = False
 
 def set_bool_display(boolValue):
     boolFormat = selectedBoolDisplay.get()
