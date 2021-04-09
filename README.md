@@ -23,7 +23,7 @@ Android libraries, if you might need them, you can get from my [PhoneTest](https
 # Functionality
 - Generally designed to display a single value per tag entered, either of string/integer/float...etc.
 - Multiple consecutive elements/bits can be displayed for certain data types by adding "{x}" at the end of the tag, where "x" is the number of elements/bits (ex. CT_STRINGArray[0]{5} or CT_DINT/2{15} or N7:0{3}).
-- Displaying bits/PID/Timer/Cunter/Control subelement values -> enter your tag, select bit/subelement from available list box (instead of entering it yourself) and optionally add "{x}" at the end.
+- Displaying bits/PID/Timer/Counter/Control subelement values -> enter your tag, select bit/subelement from available list box (instead of entering it yourself) and optionally add "{x}" at the end.
 - Tag status label turns red/green to indicate failure/success in communicating with the PLC. 
 - The default values can be changed for the app's startup, check declarations in the top section of the file.
 - The app provides automated READ and doesn't include WRITE functionality.
@@ -42,7 +42,7 @@ All it takes is to:
 
 - Install python on your device (this was tested with v3.6.8 and v2.7.18).
 - Create the required folder structure inside a folder of your choice, copy the corresponding libplctag libraries to their folders, get wrapper files, download plctag_gui.py file and add it to your folder.
-- One way to run it would be from the command prompt in Windows, by navigating to your folder and running the file with either "python plctag_gui.py" or "python -m plctag_gui" command.
+- One way to run it would be from the command prompt / terminal, by navigating to your folder and running the file with one of the following commands: "python plctag_gui.py" or "python -m plctag_gui" or "python3 plctag_gui.py" or "python3 -m plctag_gui".
 
 # Licensing
 This is MIT licensed.
