@@ -914,7 +914,6 @@ def start_update_value():
                         btnStart['bg'] = 'lightgrey'
                         btnStop['state'] = 'normal'
                         btnStop['bg'] = 'lightgreen'
-                        btnGetTags['state'] = 'disabled'
                         lbPLC['state'] = 'disabled'
                         lbDataType['state'] = 'disabled'
                         lbPID['state'] = 'disabled'
@@ -934,7 +933,6 @@ def start_update_value():
                         btnStart['bg'] = 'lightgrey'
                         btnStop['state'] = 'normal'
                         btnStop['bg'] = 'lightgreen'
-                        btnGetTags['state'] = 'disabled'
                         lbPLC['state'] = 'disabled'
                         lbDataType['state'] = 'disabled'
                         lbPID['state'] = 'disabled'
@@ -1268,8 +1266,6 @@ def stop_update_value():
                 updateRunning = False
             btnStop['state'] = 'disabled'
             btnStop['bg'] = 'lightgrey'
-            if selectedPLC.get() == 'controllogix':
-                btnGetTags['state'] = 'normal'
             lbPLC['state'] = 'normal'
             lbDataType['state'] = 'normal'
             tbIPAddress['state'] = 'normal'
