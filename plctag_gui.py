@@ -1378,7 +1378,7 @@ def plc_select():
         selectedTCC.set('None')
         selectedBit.set('None')
 
-        if plc == 'micrologix':
+        if plc == 'micrologix' and plc_tag_check_lib_version(2, 2, 0) != 0:
             selectedPID.set('None')
 
         lbBit.delete(1, 'end')
