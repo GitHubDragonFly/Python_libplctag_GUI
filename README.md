@@ -20,6 +20,10 @@ Get the libplctag libraries and python wrapper files here:
 
 Android libraries, if you might need them, you can get from my [PhoneTest](https://github.com/GitHubDragonFly/PhoneTest) project or build them yourself by cloning the [libplctag4android](https://github.com/libplctag/libplctag4android) project. Also check [libplctag4j](https://github.com/libplctag/libplctag4j/releases) releases.
 
+# Screenshot
+
+![Start Page](screenshots/Python%20plctag%20GUI%201.png?raw=true)
+
 # Functionality
 - Generally designed to display a single value per tag entered, either of string/integer/float...etc.
 - Multiple consecutive elements/bits can be displayed for certain data types by adding "{x}" at the end of the tag, where "x" is the number of elements/bits (ex. CT_STRINGArray[0]{5} or CT_DINT/2{15} or N7:0{3}).
