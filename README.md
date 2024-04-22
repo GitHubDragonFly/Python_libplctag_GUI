@@ -45,12 +45,13 @@ See the libplctag website for all PLCs supported by the library.
 All it takes is to:
 
 - Install python on your device (this was tested with v3.6.8 and v2.7.18).
-- Create the required folder structure inside a folder of your choice, copy the corresponding libplctag libraries to their folders, get wrapper files, download plctag_gui.py file and add it to your folder.
+- Create the required folder structure inside a folder of your choice and then:
+  - copy the corresponding libplctag libraries to their folders
+  - get wrapper files
+  - download `plctag_gui.py` file from this repository and add it to your folder.
 - One way to run it would be from the command prompt / terminal, by navigating to your folder and running the file with one of the following commands:
-  - `python plctag_gui.py`
-  - `python -m plctag_gui`
-  - `python3 plctag_gui.py`
-  - `python3 -m plctag_gui`
+  - `python plctag_gui.py` or `python3 plctag_gui.py`
+  - `python -m plctag_gui` or `python3 -m plctag_gui`
 
 # Licensing
 This is MIT licensed.
