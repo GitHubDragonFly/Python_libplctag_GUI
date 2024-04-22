@@ -18,7 +18,7 @@ Get the libplctag libraries and python wrapper files here:
 - libplctag's python wrapper [py](https://github.com/libplctag/libplctag/tree/release/src/wrappers/python/plctag) files
   - modified [libplctag.py](https://github.com/libplctag/libplctag/issues/228) file in case the above is not updated
 
-Android libraries, if you might need them, you can get from my [PhoneTest](https://github.com/GitHubDragonFly/PhoneTest) project or build them yourself by cloning the [libplctag4android](https://github.com/libplctag/libplctag4android) project. Also check [libplctag4j](https://github.com/libplctag/libplctag4j/releases) releases.
+Android libraries, if you might need them, you can get from my [Android_Phone_Test](https://github.com/GitHubDragonFly/Android_Phone_Test) project or build them yourself by cloning the [libplctag4android](https://github.com/libplctag/libplctag4android) project. Also check [libplctag4j](https://github.com/libplctag/libplctag4j/releases) releases.
 
 # Screenshot
 
