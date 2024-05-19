@@ -14,20 +14,26 @@ Get the libplctag libraries and python wrapper files here:
 
 - libplctag library [releases](https://github.com/libplctag/libplctag/releases)
   - use v2.1.22 to be able to use MicroLogix PID
-  - otherwise use the latest, which is v2.3.4+
+  - otherwise use the latest, which is/was v2.3.4+
 - libplctag's python wrapper [py](https://github.com/libplctag/libplctag/tree/release/src/wrappers/python/plctag) files
   - modified [libplctag.py](https://github.com/libplctag/libplctag/issues/228) file in case the above is not updated
 
 Android libraries, if you might need them, you can get from my [Android_Phone_Test](https://github.com/GitHubDragonFly/Android_Phone_Test) project or build them yourself by cloning the [libplctag4android](https://github.com/libplctag/libplctag4android) project. Also check [libplctag4j](https://github.com/libplctag/libplctag4j/releases) releases.
 
-# Screenshot
+# Screenshots
 
-![Start Page](screenshots/Python%20plctag%20GUI%201.png?raw=true)
+![Python3](screenshots/Python%20plctag%20GUI%201.png?raw=true)
+
+![Python2](screenshots/Python%20plctag%20GUI%202.png?raw=true)
 
 # Functionality
 - Generally designed to display a single value per tag entered, either of string/integer/float...etc.
-- Multiple consecutive elements/bits can be displayed for certain data types by adding "{x}" at the end of the tag, where "x" is the number of elements/bits (ex. CT_STRINGArray[0]{5} or CT_DINT/2{15} or N7:0{3}).
-- Displaying bits/PID/Timer/Counter/Control subelement values -> enter your tag, select bit/subelement from available list box (instead of entering it yourself) and optionally add "{x}" at the end.
+- Multiple consecutive elements/bits can be displayed for certain data types by adding "{x}" at the end of the tag, where "x" is the number of elements/bits:
+  - example `CT_STRINGArray[0]{5}` or `CT_DINT/2{15}` or `N7:0{3}`
+- Displaying bits/PID/Timer/Counter/Control subelement values:
+  - enter your tag
+  - select bit/subelement from available list box (instead of entering it yourself)
+  - optionally add `{x}` at the end
 - Tag status label turns red/green to indicate failure/success in communicating with the PLC. 
 - The default values can be changed for the app's startup, check declarations in the top section of the file.
 - The app provides automated READ and doesn't include WRITE functionality.
@@ -38,7 +44,7 @@ Android libraries, if you might need them, you can get from my [Android_Phone_Te
 - Modbus functionality of the libplctag library is not included in this app.
 
 There might be bugs in the app. Not everything could be tested by me, since I don't have access to all the different PLCs supported by the libplctag library.
-See the libplctag website for all PLCs supported by the library.
+Check the libplctag website for all PLCs supported by the library.
 
 # Usage
 
