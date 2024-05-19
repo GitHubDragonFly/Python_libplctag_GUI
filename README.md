@@ -30,15 +30,15 @@ Android libraries, if you might need them, you can get from my [Android_Phone_Te
 - Generally designed to display a single value per tag entered, either of string / integer / float ... etc.
 - Multiple consecutive elements / bits can be displayed for certain data types by adding `{x}` at the end of the tag, where "x" is the number of elements/bits:
   - example `CT_STRINGArray[0]{5}` or `CT_DINT/2{15}` or `N7:0{3}`
-- Displaying bits/PID/Timer/Counter/Control subelement values:
+- Displaying `bits` `PID` `Timer` `Counter` `Control` subelement values:
   - enter your tag
   - select bit/subelement from available list box (instead of entering it yourself)
   - optionally add `{x}` at the end
 - Tag status label turns red/green to indicate failure/success in communicating with the PLC. 
 - The default values can be changed for the app's startup, check declarations in the top section of the file.
 - The app provides automated READ and doesn't include WRITE functionality.
-- The "Get Tags" button will fetch ControlLogix tags and double-clicking any of the fetched tags will copy it to the clipboard.
-- The IP Address, Path and Tag text boxes offer right-click "Paste" functionality.
+- The `Get Tags` button will fetch `ControlLogix` tags and double-clicking any of the fetched tags will copy it to the clipboard.
+- The IP Address, Path and Tag text boxes offer right-click `Paste` functionality.
 - The Custom String Length has to be specified when the "custom string" data type is selected.
 - Listbox selections are achieved with double-click.
 - Modbus functionality of the libplctag library is not included in this app.
